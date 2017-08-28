@@ -1,13 +1,11 @@
-package example;
+package cn.xiaoneng.nskyeye.access.example;
 
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import akka.http.javadsl.server.HttpApp;
 import akka.http.javadsl.server.Route;
 //import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import com.alibaba.fastjson.JSON;
-import example.bean.EVS;
+import cn.xiaoneng.nskyeye.access.example.bean.EVS;
 
 
 /**

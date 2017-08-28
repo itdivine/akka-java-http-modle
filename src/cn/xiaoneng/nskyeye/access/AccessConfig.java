@@ -1,4 +1,4 @@
-package remote;
+package cn.xiaoneng.nskyeye.access;
 
 import com.typesafe.config.Config;
 import akka.actor.Address;

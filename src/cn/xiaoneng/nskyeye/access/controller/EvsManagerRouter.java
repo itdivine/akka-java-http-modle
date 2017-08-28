@@ -1,4 +1,4 @@
-package controller;
+package cn.xiaoneng.nskyeye.access.controller;
 
 import akka.http.javadsl.server.Route;
 import org.slf4j.Logger;

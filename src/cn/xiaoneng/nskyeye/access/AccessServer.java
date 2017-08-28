@@ -1,3 +1,5 @@
+package cn.xiaoneng.nskyeye.access;
+
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectHttp;
@@ -7,7 +9,6 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
-import remote.AccessConfig;
 
 
 import java.util.concurrent.CompletionStage;

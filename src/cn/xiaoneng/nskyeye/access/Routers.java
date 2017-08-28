@@ -1,6 +1,8 @@
+package cn.xiaoneng.nskyeye.access;
+
 import akka.http.javadsl.server.Route;
-import controller.EvsManagerRouter;
-import example.routes.BaseRoutes;
+import cn.xiaoneng.nskyeye.access.controller.EvsManagerRouter;
+import cn.xiaoneng.nskyeye.access.example.routes.BaseRoutes;
 import akka.http.javadsl.server.AllDirectives;
 
 /**
