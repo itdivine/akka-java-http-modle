@@ -2,6 +2,7 @@ package cn.xiaoneng.nskyeye.access;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
+import akka.actor.AddressFromURIString;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -9,6 +10,8 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 
 import java.util.concurrent.CompletionStage;
@@ -26,10 +29,7 @@ public class AccessServer {
         this.config = config;
     }
 
-
-    public static void main(String[] args) {
-        // boot up server using the route as defined below
-        ActorSystem system = ActorSystem.create("routes");
+    public void start() {
 
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
@@ -50,7 +50,29 @@ public class AccessServer {
 //                .thenAccept(unbound -> system.terminate()); // and shutdown when done
     }
 
+    public static void main(String[] args) {
 
+        // 启动轨迹云服务
+        Config config = ConfigFactory.load().getConfig("App2");
+
+        //初始化配置信息
+        COMMON.read(config);
+
+        //启动http服务
+        AccessConfig accessConfig = new AccessConfig(COMMON.systemName, ConfigFactory.load().getConfig(config.getString("httpConfigFileName")),
+                config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("clusterAddr")), 6000L);
+
+        // boot up server using the route as defined below
+        ActorSystem system = ActorSystem.create("routes");
+
+        //方案一：HTTP MODLE：新的ActorSystem
+//            ActorSystem system1 = ActorSystem.create(COMMON.systemName, accessConfig.config());
+//            new AccessServer(system1, accessConfig).run();
+
+        //方案二：HTTP MODLE：同一个ActorSystem
+        new AccessServer(system, accessConfig).start();
+
+    }
 
 
 }

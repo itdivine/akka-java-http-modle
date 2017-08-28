@@ -1,9 +1,9 @@
 package cn.xiaoneng.nskyeye.access.remote;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.cluster.pubsub.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.pattern.Patterns;
@@ -26,6 +26,7 @@ public class MessageDispatcher {
     private AccessConfig config;
     private ActorRef mediator; //总线
     private ActorRef clusterListener; //集群监听
+    private Timeout timeout = new Timeout(Duration.create(5000, "millisecond"));
 
     public MessageDispatcher(ActorSystem system, AccessConfig config) {
         this.system = system;
@@ -34,22 +35,18 @@ public class MessageDispatcher {
         mediator = DistributedPubSub.get(system).mediator();
     }
 
-
     /**
      * 通过总线发布消息
-     * @param topic 主题：一般是Actor路径
      * @param message 消息内容
      * @return
      */
-    public Object publishMsg(String topic, Object message) {
+    public Object publishMsg(Message message) {
 
         Object receiveMessage = null;
 
         try {
             // 发送消息
-            Timeout timeout = new Timeout(Duration.create(5000, "millisecond"));
-//            DistributedPubSubMediator.Publish publishMsg = DistributedPubSubMediator.Publish.apply(topic, message);
-            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(topic, message);
+            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
 
@@ -60,7 +57,20 @@ public class MessageDispatcher {
         return receiveMessage;
     }
 
-//    public Object sendMsg() {
-//
-//    }
+    /**
+     * ActorSelect发送消息(Uncheck)
+     * @param message 消息内容
+     * @return
+     */
+    public Object sendMsg(Message message) {
+        Object receiveMessage = null;
+        try {
+            ActorSelection actor = system.actorSelection(message.getActorPath());
+            Future<Object> futureResult = Patterns.ask(actor, message, timeout);
+            receiveMessage = Await.result(futureResult, timeout.duration());
+        } catch (Exception e) {
+            log.error("Exception: " + e.getMessage());
+        }
+        return receiveMessage;
+    }
 }
