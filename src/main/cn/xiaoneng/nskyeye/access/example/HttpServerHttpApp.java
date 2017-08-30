@@ -26,9 +26,9 @@ class HttpServerHttpApp extends HttpApp {
                 pathEndOrSingleSlash(() -> // Listens to the top `/`
                         complete("Server up and running") // Completes with some text
                 ),
-                path("hello", () -> // Listens to paths that are exactly `/hello`
-                        helloRoutes()
-                ));
+        path("hello", () -> // Listens to paths that are exactly `/hello`
+                helloRoutes()
+        ));
     }
 
     private Route helloRoutes() {

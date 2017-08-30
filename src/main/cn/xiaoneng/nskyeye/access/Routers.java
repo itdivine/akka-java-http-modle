@@ -11,6 +11,6 @@ import akka.http.javadsl.server.AllDirectives;
 public class Routers extends AllDirectives {
 
     public Route createRoute() {
-        return route(EvsManagerRouter.baseRoutes(), BaseRoutes.baseRoutes());
+        return route(EvsManagerRouter.route(), BaseRoutes.baseRoutes());
     }
 }
