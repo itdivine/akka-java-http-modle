@@ -31,7 +31,7 @@ public class MessageDispatcher {
     public MessageDispatcher(ActorSystem system, AccessConfig config) {
         this.system = system;
         this.config = config;
-        clusterListener = system.actorOf(Props.create(ClusterListener.class), "clusterListener");
+//        clusterListener = system.actorOf(Props.create(ClusterListener.class), "clusterListener");
         mediator = DistributedPubSub.get(system).mediator();
     }
 
@@ -46,7 +46,7 @@ public class MessageDispatcher {
 
         try {
             // 发送消息
-            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message);
+            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message, true);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
 
