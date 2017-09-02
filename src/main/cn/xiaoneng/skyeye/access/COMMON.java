@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access;
+package cn.xiaoneng.skyeye.access;
 
 import com.typesafe.config.Config;
 

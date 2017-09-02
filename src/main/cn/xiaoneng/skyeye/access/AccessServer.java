@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access;
+package cn.xiaoneng.skyeye.access;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
@@ -10,9 +10,9 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
 
 import java.util.concurrent.CompletionStage;
 
@@ -33,6 +33,9 @@ public class AccessServer {
 
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
+
+        // 初始化总线，请保证该对象的初始化要比Routes提前
+        MessageDispatcher.getInstance().init(system, config);
 
         //In order to access all directives we need an instance where the routes are define.
 //        HttpServer app = new HttpServer();
@@ -63,7 +66,7 @@ public class AccessServer {
                 config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("clusterAddr")), 6000L);
 
         // boot up server using the route as defined below
-        ActorSystem system = ActorSystem.create("routes");
+        ActorSystem system = ActorSystem.create(config.getString("systemName"), config);
 
         //方案一：HTTP MODLE：新的ActorSystem
 //            ActorSystem system1 = ActorSystem.create(COMMON.systemName, accessConfig.config());
