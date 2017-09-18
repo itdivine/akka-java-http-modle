@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.remote;
+package cn.xiaoneng.skyeye.access.remote;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -8,7 +8,7 @@ import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import cn.xiaoneng.nskyeye.access.AccessConfig;
+import cn.xiaoneng.skyeye.access.AccessConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.Await;
@@ -16,6 +16,9 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
 /**
+ * 单例类
+ *    负责把control的消息发送给Server
+ *
  * Created by XuYang on 2017/8/27.
  */
 public class MessageDispatcher {
@@ -28,12 +31,24 @@ public class MessageDispatcher {
     private ActorRef clusterListener; //集群监听
     private Timeout timeout = new Timeout(Duration.create(5000, "millisecond"));
 
-    public MessageDispatcher(ActorSystem system, AccessConfig config) {
+    private static class MessageDispatcherHolder {
+        public static MessageDispatcher instance = new MessageDispatcher();
+    }
+
+    private MessageDispatcher() {}
+
+    public static MessageDispatcher getInstance() {
+        return MessageDispatcherHolder.instance;
+    }
+
+    public void init(ActorSystem system, AccessConfig config) {
         this.system = system;
         this.config = config;
-//        clusterListener = system.actorOf(Props.create(ClusterListener.class), "clusterListener");
+        clusterListener = system.actorOf(Props.create(ClusterListener.class, config), "clusterListener");
         mediator = DistributedPubSub.get(system).mediator();
     }
+
+
 
     /**
      * 通过总线发布消息
@@ -46,7 +61,7 @@ public class MessageDispatcher {
 
         try {
             // 发送消息
-            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message, true);
+            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
 

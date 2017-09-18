@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.remote;
+package cn.xiaoneng.skyeye.access.remote;
 
 /**
  * Created by XuYang on 2017/8/28.

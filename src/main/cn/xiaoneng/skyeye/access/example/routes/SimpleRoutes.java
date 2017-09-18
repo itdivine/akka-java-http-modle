@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.example.routes;
+package cn.xiaoneng.skyeye.access.example.routes;
 
 import akka.http.javadsl.server.Route;
 

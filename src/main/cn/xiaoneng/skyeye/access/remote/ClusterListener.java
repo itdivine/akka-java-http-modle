@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.remote;
+package cn.xiaoneng.skyeye.access.remote;
 
 import akka.actor.AbstractActor;
 import akka.cluster.Cluster;
@@ -9,7 +9,7 @@ import akka.cluster.ClusterEvent.MemberUp;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import cn.xiaoneng.nskyeye.access.AccessConfig;
+import cn.xiaoneng.skyeye.access.AccessConfig;
 
 public class ClusterListener extends AbstractActor {
     LoggingAdapter log = Logging.getLogger(getContext().system(), this);

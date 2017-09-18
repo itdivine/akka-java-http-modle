@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.example;
+package cn.xiaoneng.skyeye.access.example;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
@@ -11,8 +11,8 @@ import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.Route;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
-import cn.xiaoneng.nskyeye.access.example.routes.SimpleRoutes;
-import cn.xiaoneng.nskyeye.access.example.routes.BaseRoutes;
+import cn.xiaoneng.skyeye.access.example.routes.SimpleRoutes;
+import cn.xiaoneng.skyeye.access.example.routes.BaseRoutes;
 
 import java.util.concurrent.CompletionStage;
 

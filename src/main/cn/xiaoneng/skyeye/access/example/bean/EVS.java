@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.example.bean;
+package cn.xiaoneng.skyeye.access.example.bean;
 
 /**
  * Created by divine on 2017/8/22.
