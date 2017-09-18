@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access.example;
+package cn.xiaoneng.skyeye.access.example;
 
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.RemoteAddress;
@@ -6,8 +6,8 @@ import akka.http.javadsl.server.HttpApp;
 import akka.http.javadsl.server.Route;
 //import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
+import cn.xiaoneng.skyeye.access.example.bean.EVS;
 import com.alibaba.fastjson.JSON;
-import cn.xiaoneng.nskyeye.access.example.bean.EVS;
 
 import java.net.InetAddress;
 
@@ -27,8 +27,8 @@ class HttpServerHttpApp extends HttpApp {
     @Override
     protected Route routes() {
 
-        return extractRequest(request ->
-                extractClientIP(remoteAddr ->
+        return extractRequest(request ->        // Get HttpRequest
+                extractClientIP(remoteAddr ->   // Get IP
                         route(
                                 pathEndOrSingleSlash(() -> // Listens to the top `/`
                                         complete("Server up and running") // Completes with some text
@@ -41,6 +41,7 @@ class HttpServerHttpApp extends HttpApp {
         );
     }
 
+    // Get HttpRequest
     private Route request() {
         return extractRequest(request ->
                 complete("Request method is " + request.method().name() +

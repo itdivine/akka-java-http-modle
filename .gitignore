@@ -1,0 +1,7 @@
+*.iml
+/.idea/
+/target/
+/log/
+*.lck
+/log/
+/journal/
