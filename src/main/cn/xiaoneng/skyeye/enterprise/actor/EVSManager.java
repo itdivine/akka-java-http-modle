@@ -6,9 +6,13 @@ import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
+import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import cn.xiaoneng.skyeye.temple.ListMessage;
 import cn.xiaoneng.skyeye.temple.ListProcessor;
 import cn.xiaoneng.skyeye.util.ActorNames;
+import cn.xiaoneng.skyeye.util.Statics;
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +116,8 @@ public class EVSManager extends AbstractActor {
             if (message instanceof EVSListGet) {
                 list((EVSListGet)message);
 
+            } else if (message instanceof EVS.Create)  {
+                create((EVS.Create)message);
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -119,6 +125,46 @@ public class EVSManager extends AbstractActor {
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
             getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
+        }
+    }
+
+    protected void create(EVS.Create message) {
+
+        try {
+            EVSInfo evsInfo = message.evsInfo;
+
+            String siteId = evsInfo.getSiteId();
+            if (Statics.isNullOrEmpty(siteId)) {
+                getSender().tell("{\"status\":400,\"body\":\"\"}", getSelf());
+                return;
+            }
+
+            if (evsList.contains(siteId)) {
+                getSender().tell("{\"status\":201,\"body\":\"\"}", getSelf());
+
+            } else {
+                createEVS(evsInfo);
+
+                getSender().tell("{\"status\":200,\"body\":" + JSON.toJSON(evsInfo) + "}", getSelf());
+
+                //initDefaultSourceScript(evsInfo.getSiteId());
+            }
+
+        } catch (Exception e) {
+            log.error("Exception " + e.getMessage());
+            getSender().tell("{\"status\":400,\"body\":\"\"}", getSelf());
+        }
+    }
+
+    private void createEVS(EVSInfo evsInfo) {
+        if (!evsList.contains(evsInfo.getSiteId())) {
+
+            ActorRef evsRef = getContext().actorOf(Props.create(EVS.class, evsInfo), evsInfo.getSiteId());
+//            this.evsRegion.tell(new EVS.Create(evsInfo), getSelf());
+            evsList.add(evsInfo.getSiteId());
+
+            IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRef.path().toString(), evsRef, 10);
+            listProcessor.tell(isRegistMessage, getSelf());
         }
     }
 
