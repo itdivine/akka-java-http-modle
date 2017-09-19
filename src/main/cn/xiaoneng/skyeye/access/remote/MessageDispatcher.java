@@ -61,7 +61,7 @@ public class MessageDispatcher {
 
         try {
             // 发送消息
-            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message);
+            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish("/user" + message.getActorPath(), message);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
 
@@ -73,15 +73,15 @@ public class MessageDispatcher {
     }
 
     /**
-     * ActorSelect发送消息(Uncheck)
+     * ActorSelect发送消息
      * @param message 消息内容
      * @return
      */
     public Object sendMsg(Message message) {
         Object receiveMessage = null;
         try {
-            ActorSelection actor = system.actorSelection(message.getActorPath());
-            Future<Object> futureResult = Patterns.ask(actor, message, timeout);
+            ActorSelection actor = system.actorSelection("/user" + message.getActorPath());
+            Future<Object> futureResult = Patterns.ask(actor, message.getBody(), timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());

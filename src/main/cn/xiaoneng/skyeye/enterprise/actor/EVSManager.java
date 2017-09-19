@@ -1,25 +1,20 @@
-package cn.xiaoneng.nskyeye.access;
+package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
-import cn.xiaoneng.nskyeye.access.example.bean.EVS;
-import cn.xiaoneng.nskyeye.access.remote.Message;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
+import cn.xiaoneng.skyeye.access.remote.Message;
+import cn.xiaoneng.skyeye.temple.ListMessage;
+import cn.xiaoneng.skyeye.temple.ListProcessor;
+import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.runtime.Statics;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 企业虚拟空间管理器 - 集群单例
@@ -35,6 +30,8 @@ public class EVSManager extends AbstractActor {
 //    private final ActorRef evsRegion;
 
     private ActorRef mediator;
+
+    protected ActorRef listProcessor;
 
     // siteId evsActorRef
     private static List<String> evsList = new ArrayList<String>();
@@ -93,6 +90,7 @@ public class EVSManager extends AbstractActor {
         log.info("EVSManager init success, path = " + getSelf().path().toStringWithoutAddress());
 
         super.preStart();
+        listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
         mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
@@ -112,9 +110,10 @@ public class EVSManager extends AbstractActor {
         try {
             log.info("Receive message: " + getSender());
 
-            if (message instanceof Message) {
+            if (message instanceof EVSListGet) {
 
-                getSender().tell("{\"status\":200,\"body\":\"success\"}", getSelf());
+                list((EVSListGet)message);
+//                getSender().tell("{\"code\":200,\"body\":\"{status:success}\"}", getSelf());
 //                processHTTPCommand((String) message);
 
             } else {
@@ -125,6 +124,26 @@ public class EVSManager extends AbstractActor {
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
             getSender().tell("{\"status\":415,\"body\":\"\"}", getSelf());
+        }
+    }
+
+    /**
+     * 查询子Actor列表
+     */
+    protected void list(EVSListGet message) {
+
+        try {
+            int page = message.page;
+            int per_page = message.per_page;
+
+
+            ListMessage listMessage = new ListMessage(page, per_page, 10);
+
+            listProcessor.forward(listMessage, getContext());
+
+        } catch (Exception e) {
+            log.error("Exception " + e.getMessage());
+            // TODO HTTP 4xx
         }
     }
 }

@@ -1,4 +1,4 @@
-package cn.xiaoneng.nskyeye.access;
+package cn.xiaoneng.skyeye.access;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
@@ -11,7 +11,9 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
-import cn.xiaoneng.nskyeye.access.remote.MessageDispatcher;
+import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
+import cn.xiaoneng.skyeye.enterprise.actor.EVSManager;
+import cn.xiaoneng.skyeye.access.controller.Routers;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -39,9 +41,9 @@ public class AccessServer {
         //In order to access all directives we need an instance where the routes are define.
 //        HttpServer app = new HttpServer();
 
-        MessageDispatcher messageDispatcher = new MessageDispatcher(system, config);
+        MessageDispatcher.getInstance().init(system, config);
 
-        Routers routers = new Routers(messageDispatcher);
+        Routers routers = new Routers(MessageDispatcher.getInstance());
 
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = routers.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
