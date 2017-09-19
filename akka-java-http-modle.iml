@@ -28,11 +28,15 @@
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster-tools_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-remote_2.12:2.5.3" level="project" />
-    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-protobuf_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty:3.10.6.Final" level="project" />
     <orderEntry type="library" name="Maven: io.aeron:aeron-driver:1.2.5" level="project" />
     <orderEntry type="library" name="Maven: io.aeron:aeron-client:1.2.5" level="project" />
     <orderEntry type="library" name="Maven: org.agrona:agrona:0.9.5" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-persistence_2.12:2.5.3" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-protobuf_2.12:2.5.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-beans:4.3.11.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-core:4.3.11.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.2" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.7" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.1.2" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.1.2" level="project" />

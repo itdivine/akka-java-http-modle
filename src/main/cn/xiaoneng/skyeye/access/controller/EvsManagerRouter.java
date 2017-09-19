@@ -5,9 +5,7 @@ import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.example.bean.EVS;
 import cn.xiaoneng.skyeye.access.remote.Message;
-import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,19 +20,20 @@ public class EvsManagerRouter extends BaseRouter {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
 
-    public Route route(MessageDispatcher messageDispatcher) {
+    private final String per_page_evs_count = "5"; //分页查询企业列表，每页默认查询企业个数
+
+    public Route route() {
 
         return
                 extractUri(uri ->
                         path("enterprises", () ->
                                 route(
                                         get(() -> parameterMap(params -> {
-                                            String page = params.get("page");
-                                            String per_page = params.get("per_page");
+                                            int page = Integer.parseInt(params.getOrDefault("page", "0"));
+                                            int per_page = Integer.parseInt(params.getOrDefault("per_page", per_page_evs_count));
                                             String actorPath = "/user" + uri.getPathString();
-                                            log.info("actorPath = " + actorPath);
-                                            Object obj = messageDispatcher.publishMsg(new Message(actorPath, page));
-                                            return complete("response " + obj); //getEVSList()
+                                            log.debug("actorPath = " + actorPath);
+                                            return complete(getEVSList(actorPath, new EVSListGet(page, per_page)));
                                         })),
                                         post(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVS evs = JSON.parseObject(data, EVS.class);
@@ -44,29 +43,7 @@ public class EvsManagerRouter extends BaseRouter {
                                 ))
                 );
     }
-    /*public Route route = path("enterprises", () ->
 
-            extractRequest(request ->
-
-                    route(
-                            get(() -> parameterMap(params -> {
-
-                                int page = Integer.parseInt(params.getOrDefault("page", "0"));
-                                int per_page = Integer.parseInt(params.getOrDefault("per_page", "5"));
-                                String uri = request.getUri().getPathString();
-                                return complete(getEVSList(uri, new EVSListGet(page, per_page)));
-
-                            })),
-
-                            post(() -> entity(Unmarshaller.entityToString(), data -> {
-                                EVS evs = JSON.parseObject(data, EVS.class);
-                                return complete("post " + evs.toString());
-                            }))
-
-                            .orElse(complete("Unsupported operations"))
-                    )
-            )
-    );*/
 
     /**
      * 分页查询企业列表
@@ -78,18 +55,10 @@ public class EvsManagerRouter extends BaseRouter {
     private HttpResponse getEVSList(String uri, EVSListGet msg) {
 
         Message message = new Message(uri, msg);
-//        Object object = messageDispatcher.publishMsg(message);
-        Object object = messageDispatcher.sendMsg(message);
+        Object object = messageDispatcher.publishMsg(message);
+//        Object object = messageDispatcher.sendMsg(message);
 
-        if(object == null) {
-            return badResponse();
-
-        } else {
-            JSONObject json = JSON.parseObject(object.toString());
-            String body = json.getString("body");
-            int code = json.getIntValue("code");
-            return successResponse(code, body);
-        }
+        return response(object);
     }
 
 

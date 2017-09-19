@@ -6,7 +6,6 @@ import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
-import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.temple.ListMessage;
 import cn.xiaoneng.skyeye.temple.ListProcessor;
 import cn.xiaoneng.skyeye.util.ActorNames;
@@ -100,7 +99,7 @@ public class EVSManager extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(Message.class, msg -> onReceive(msg))
+//                .match(EVSListGet.class, msg -> list(msg))
                 .matchAny(msg -> onReceive(msg))
                 .build();
     }
@@ -111,19 +110,15 @@ public class EVSManager extends AbstractActor {
             log.info("Receive message: " + getSender());
 
             if (message instanceof EVSListGet) {
-
                 list((EVSListGet)message);
-//                getSender().tell("{\"code\":200,\"body\":\"{status:success}\"}", getSelf());
-//                processHTTPCommand((String) message);
 
             } else {
-                unhandled(message);
-//                getSender().tell("{\"status\":415,\"body\":\"\"}", getSelf());
+                getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
-            getSender().tell("{\"status\":415,\"body\":\"\"}", getSelf());
+            getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
         }
     }
 
@@ -135,15 +130,12 @@ public class EVSManager extends AbstractActor {
         try {
             int page = message.page;
             int per_page = message.per_page;
-
-
             ListMessage listMessage = new ListMessage(page, per_page, 10);
-
             listProcessor.forward(listMessage, getContext());
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
-            // TODO HTTP 4xx
+            getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
         }
     }
 }

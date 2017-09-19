@@ -5,6 +5,8 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.AllDirectives;
 import akka.http.scaladsl.model.StatusCodes;
 import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * Created by XY on 2017/8/30.
@@ -13,26 +15,39 @@ public class BaseRouter extends AllDirectives {
 
     public MessageDispatcher messageDispatcher = MessageDispatcher.getInstance();
 
-    public HttpResponse badResponse(String reason) {
-        String body = "{\"message\":\"" + reason + "\"}";
-        return HttpResponse.create().withStatus(StatusCodes.BadRequest()).withEntity(ContentTypes.APPLICATION_JSON, body);
+
+    public HttpResponse response(Object object) {
+
+        if(object == null) {
+            return badResponse();
+
+        } else {
+            JSONObject json = JSON.parseObject(object.toString());
+            String body = json.getString("body");
+            int code = json.getIntValue("code");
+            return response(code, body);
+        }
+    }
+
+    public HttpResponse response(int code, String message) {
+
+        if(code == 200)
+            return successResponse(code, message);
+        else
+            return badResponse(message);
+    }
+
+    public HttpResponse successResponse(int code, String message) {
+//        return HttpResponse.create().withStatus(HttpCode.leetCode);
+        return HttpResponse.create().withStatus(StatusCodes.custom(code, "", null)).withEntity(ContentTypes.APPLICATION_JSON, message);
     }
 
     public HttpResponse badResponse() {
         return badResponse("");
     }
 
-    public HttpResponse successResponse(int code, String body) {
-
-        return HttpResponse.create().withStatus(StatusCodes.custom(code, "", null)).withEntity(ContentTypes.APPLICATION_JSON, body);
+    public HttpResponse badResponse(String reason) {
+        String body = "{\"message\":\"" + reason + "\"}";
+        return HttpResponse.create().withStatus(StatusCodes.BadRequest()).withEntity(ContentTypes.APPLICATION_JSON, body);
     }
-
-
-//    public Route route = null;
-
-//    public Route getRoute(){
-//        return null;
-//    }
-
-
 }

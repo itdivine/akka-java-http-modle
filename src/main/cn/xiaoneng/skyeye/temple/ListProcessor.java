@@ -78,7 +78,7 @@ public class ListProcessor extends UntypedActor {
                 List<ActorRef> receiverList = getReceiverList(listMessage.getPage(), listMessage.getPer_page());
 
                 if(receiverList == null || receiverList.size() == 0) {
-                    getSender().tell("{\"status\":200,\"body\":\"\"}", getSelf());
+                    getSender().tell("{\"code\":200,\"body\":\"\"}", getSelf());
                     return;
                 }
 

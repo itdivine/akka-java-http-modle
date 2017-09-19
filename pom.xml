@@ -45,6 +45,19 @@
             <artifactId>akka-cluster-tools_2.12</artifactId>
             <version>${akka_version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence_2.12</artifactId>
+            <version>${akka_version}</version>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-beans -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>4.3.11.RELEASE</version>
+        </dependency>
 
 
 
