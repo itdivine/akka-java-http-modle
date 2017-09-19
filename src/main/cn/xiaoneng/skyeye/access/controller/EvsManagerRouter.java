@@ -5,12 +5,13 @@ import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.example.bean.EVS;
 import cn.xiaoneng.skyeye.access.remote.Message;
+import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.*;
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 
 /**
  * Created by XuYang on 2017/8/27.
@@ -21,7 +22,29 @@ public class EvsManagerRouter extends BaseRouter {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
 
-    public Route route = path("enterprises", () ->
+    public Route route(MessageDispatcher messageDispatcher) {
+
+        return
+                extractUri(uri ->
+                        path("enterprises", () ->
+                                route(
+                                        get(() -> parameterMap(params -> {
+                                            String page = params.get("page");
+                                            String per_page = params.get("per_page");
+                                            String actorPath = "/user" + uri.getPathString();
+                                            log.info("actorPath = " + actorPath);
+                                            Object obj = messageDispatcher.publishMsg(new Message(actorPath, page));
+                                            return complete("response " + obj); //getEVSList()
+                                        })),
+                                        post(() -> entity(Unmarshaller.entityToString(), data -> {
+                                            EVS evs = JSON.parseObject(data, EVS.class);
+                                            return complete("post " + evs.toString());
+                                        }))
+                                                .orElse(complete("Received something else"))
+                                ))
+                );
+    }
+    /*public Route route = path("enterprises", () ->
 
             extractRequest(request ->
 
@@ -43,7 +66,7 @@ public class EvsManagerRouter extends BaseRouter {
                             .orElse(complete("Unsupported operations"))
                     )
             )
-    );
+    );*/
 
     /**
      * 分页查询企业列表

@@ -17,6 +17,6 @@ public class Routers extends AllDirectives {
 
     public Route createRoute() {
         EvsManagerRouter evsManagerRouter = new EvsManagerRouter();
-        return route(evsManagerRouter.route, BaseRoutes.baseRoutes());
+        return route(evsManagerRouter.route(), BaseRoutes.baseRoutes());
     }
 }
