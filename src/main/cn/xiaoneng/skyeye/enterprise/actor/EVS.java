@@ -46,21 +46,25 @@ public class EVS extends AbstractActor {
         super.preStart();
     }
 
-
-
     public static final class Create implements Serializable {
         public final EVSInfo evsInfo;
         public Create(EVSInfo evsInfo) {
             this.evsInfo = evsInfo;
+        }
+    }
 
+    public static final class Get implements Serializable {
+        public final String siteId;
+        public Get(String siteId) {
+            this.siteId = siteId;
         }
     }
 
     public static final class Result implements Serializable {
-        public final boolean result;
+        public final int code;
         public final EVSInfo evsInfo;
-        public Result(boolean result, EVSInfo evsInfo) {
-            this.result = result;
+        public Result(int code, EVSInfo evsInfo) {
+            this.code = code;
             this.evsInfo = evsInfo;
         }
     }
@@ -101,11 +105,7 @@ public class EVS extends AbstractActor {
         }
     }
 
-    public void createEVS(EVSInfo evsInfo) {
-        log.info("Receive message: " + evsInfo);
-        this.evsInfo = evsInfo;
-        getSender().tell(new EVS.Result(true, evsInfo), getSelf());
-    }
+
 
 //    @Override
 //    public Receive createReceiveRecover() {
@@ -117,16 +117,25 @@ public class EVS extends AbstractActor {
     @Override
     public Receive createReceive() {
 
-        log.info("EVS: " + getSelf().path());
+        log.debug("EVS: " + getSelf().path());
 
         return receiveBuilder()
                 .match(Create.class, msg -> this.createEVS(msg.evsInfo))
+                .match(Get.class, msg -> getEVS(msg.siteId)) // 查询企业信息
                 .match(String.class, msg -> processHTTPCommand(msg))
-                .match(CommandMessage.class, msg ->{
-                    // 查询企业信息
-                    DocumentMessage documentMessage = new DocumentMessage(null, 10, evsInfo.toJSONString(), msg.getMsgId());
-                    getSender().tell(documentMessage, getSelf());})
+                .matchAny(msg -> log.info("EVS matchAny: " + msg))
                 .build();
+    }
+
+    public void createEVS(EVSInfo evsInfo) {
+        log.info("Receive message: " + evsInfo);
+        this.evsInfo = evsInfo;
+        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+    }
+
+    public void getEVS(String siteId) {
+        log.info("getEVS: " + siteId);
+        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 
     private void processHTTPCommand(String message) {

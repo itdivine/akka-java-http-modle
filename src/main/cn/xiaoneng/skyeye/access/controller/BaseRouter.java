@@ -33,8 +33,11 @@ public class BaseRouter extends AllDirectives {
 
         if(code == 200)
             return successResponse(code, message);
-        else
+        else if(code == 201) {
+            return HttpResponse.create().withStatus(StatusCodes.Created());
+        } else {
             return badResponse(message);
+        }
     }
 
     public HttpResponse successResponse(int code, String message) {

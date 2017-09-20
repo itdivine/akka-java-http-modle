@@ -134,12 +134,12 @@ public class EVSManager extends AbstractActor {
 
             String siteId = evsInfo.getSiteId();
             if (Statics.isNullOrEmpty(siteId)) {
-                getSender().tell("{\"status\":400,\"body\":\"\"}", getSelf());
+                getSender().tell("{\"code\":400,\"body\":\"\"}", getSelf());
                 return;
             }
 
             if (evsList.contains(siteId)) {
-                getSender().tell("{\"status\":201,\"body\":\"\"}", getSelf());
+                getSender().tell(new EVS.Result(201, null), getSelf());
 
             } else {
                 createEVS(evsInfo);
@@ -151,14 +151,14 @@ public class EVSManager extends AbstractActor {
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
-            getSender().tell("{\"status\":400,\"body\":\"\"}", getSelf());
+            getSender().tell("{\"code\":400,\"body\":\"\"}", getSelf());
         }
     }
 
     private void createEVS(EVSInfo evsInfo) {
         if (evsList.contains(evsInfo.getSiteId())) {
-            //TODO 通知control企业已经被创建，返回201
-
+            //企业已经被创建，返回201
+            getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
 
         } else {
             ActorRef evsRegion = getContext().actorOf(Props.create(EVS.class), evsInfo.getSiteId());
