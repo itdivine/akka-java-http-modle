@@ -2,13 +2,27 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="989d404a-3f05-4d1e-b93e-f877bfc07229" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/example/bean/EVS.java" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/log/logfile.log" afterPath="$PROJECT_DIR$/log/logfile.log" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/Message/EVSProtocol.java" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/Message/EVSProtocol.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/controller/EvsManagerRouter.java" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/controller/EvsManagerRouter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/example/HttpServerHttpApp.java" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/example/HttpServerHttpApp.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/enterprise/actor/EVSManager.java" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/enterprise/actor/EVSManager.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_typesafe_akka_akka_persistence_2_12_2_5_3.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_springframework_spring_beans_4_3_11_RELEASE.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_springframework_spring_core_4_3_11_RELEASE.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/ActorStatus.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/BaseAbstractActor.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/BasePersistentActor.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/IBaseActor.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/IMediator.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/StatusActor.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/StatusActorWithAtLeastOnceDelivery.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/actor/protocol/SaveSnapshot.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/code/HttpCode.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/access/code/HttpCodeRegister.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/enterprise/actor/EVS.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/enterprise/bean/EVSInfo.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/enterprise/message/EVSCommandMessage.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/util/ActorNames.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/util/HTTPCommand.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/cn/xiaoneng/skyeye/util/Operation.java" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/log/logfile.log" afterPath="" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -1242,7 +1256,7 @@
       <workItem from="1505722148938" duration="14337000" />
       <workItem from="1505786317594" duration="2160000" />
       <workItem from="1505790350154" duration="14242000" />
-      <workItem from="1505872419717" duration="4375000" />
+      <workItem from="1505872419717" duration="4508000" />
     </task>
     <task id="LOCAL-00001" summary="1.编写企业管理器">
       <created>1504059833175</created>
@@ -1274,11 +1288,17 @@
       <option name="project" value="LOCAL" />
       <updated>1505822625659</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="开发EVS中 3">
+      <created>1505913170856</created>
+      <option name="number" value="00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1505913170856</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="90853000" />
+    <option name="totallyTimeSpent" value="90986000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1303,7 +1323,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3716143" sideWeight="0.49786323" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17574786" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18643162" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936078" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1375,7 +1395,8 @@
     <MESSAGE value="修改上一个合并版本的错误" />
     <MESSAGE value="EVSManager调试通过&#10;开发EVS中" />
     <MESSAGE value="开发EVS中 2" />
-    <option name="LAST_COMMIT_MESSAGE" value="开发EVS中 2" />
+    <MESSAGE value="开发EVS中 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="开发EVS中 3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
