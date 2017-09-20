@@ -135,3 +135,23 @@
 2017-09-19 19:07:42 [NSkyEye-akka.actor.default-dispatcher-21] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
 2017-09-19 19:07:42 [NSkyEye-akka.actor.default-dispatcher-16] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#-146696919]
 2017-09-19 19:07:48 [NSkyEye-akka.actor.default-dispatcher-19] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]
+2017-09-20 10:05:38 [NSkyEye-akka.actor.default-dispatcher-5] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
+2017-09-20 10:05:38 [NSkyEye-akka.actor.default-dispatcher-5] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#-1114314596]
+2017-09-20 10:05:51 [NSkyEye-akka.actor.default-dispatcher-5] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]
+2017-09-20 10:05:57 [NSkyEye-akka.actor.default-dispatcher-18] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$b]
+2017-09-20 10:05:58 [NSkyEye-akka.actor.default-dispatcher-3] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$c]
+2017-09-20 10:05:59 [NSkyEye-akka.actor.default-dispatcher-5] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$d]
+2017-09-20 10:06:00 [NSkyEye-akka.actor.default-dispatcher-20] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$e]
+2017-09-20 10:22:38 [NSkyEye-akka.actor.default-dispatcher-2] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
+2017-09-20 10:22:38 [NSkyEye-akka.actor.default-dispatcher-19] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#1472968599]
+2017-09-20 10:22:51 [NSkyEye-akka.actor.default-dispatcher-22] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]
+2017-09-20 10:22:51 [NSkyEye-akka.actor.default-dispatcher-22] ERROR /user/enterprises - Exception no matching constructor found on class cn.xiaoneng.skyeye.enterprise.actor.EVS for arguments [class cn.xiaoneng.skyeye.enterprise.bean.EVSInfo]
+2017-09-20 10:24:59 [NSkyEye-akka.actor.default-dispatcher-15] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$b]
+2017-09-20 10:25:04 [NSkyEye-akka.actor.default-dispatcher-22] ERROR c.x.s.a.remote.MessageDispatcher - Exception: Futures timed out after [5000 milliseconds]
+2017-09-20 10:27:11 [NSkyEye-akka.actor.default-dispatcher-15] ERROR /user/enterprises - Exception no matching constructor found on class cn.xiaoneng.skyeye.enterprise.actor.EVS for arguments [class cn.xiaoneng.skyeye.enterprise.bean.EVSInfo]
+2017-09-20 10:39:03 [NSkyEye-akka.actor.default-dispatcher-22] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
+2017-09-20 10:39:06 [NSkyEye-akka.actor.default-dispatcher-17] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#-1468909786]
+2017-09-20 10:39:14 [NSkyEye-akka.actor.default-dispatcher-20] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]
+2017-09-20 10:39:14 [NSkyEye-akka.actor.default-dispatcher-22] INFO  /user/enterprises/kf_3000 - EVS: akka://NSkyEye/user/enterprises/kf_3000
+2017-09-20 10:39:14 [NSkyEye-akka.actor.default-dispatcher-22] INFO  /user/enterprises/kf_3000 - EVS init success, path = akka://NSkyEye/user/enterprises/kf_3000
+2017-09-20 10:39:14 [NSkyEye-akka.actor.default-dispatcher-22] INFO  /user/enterprises/kf_3000 - Receive message: EVSInfo{siteId='kf_3000', name='星巴克3', creatorId='创建者ID', creattime=1505875152735, expriedtime=0, deadline=0, status=0, quota=Quota{pv_count_quota_perday=0, concurrent_count_quota=0, backtrace_days=30, baidu_keyword_onoff=1, baidu_keyword_count=0}, count=10, external={ES1=, ES3=, ES2=, ES5=, ES4=, ES7=, ES6=, ES9=, ES8=, ES10=}}

@@ -12,7 +12,6 @@ import cn.xiaoneng.skyeye.temple.ListMessage;
 import cn.xiaoneng.skyeye.temple.ListProcessor;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import cn.xiaoneng.skyeye.util.Statics;
-import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +144,7 @@ public class EVSManager extends AbstractActor {
             } else {
                 createEVS(evsInfo);
 
-                getSender().tell("{\"status\":200,\"body\":" + JSON.toJSON(evsInfo) + "}", getSelf());
+                //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
 
                 //initDefaultSourceScript(evsInfo.getSiteId());
             }
@@ -157,13 +156,16 @@ public class EVSManager extends AbstractActor {
     }
 
     private void createEVS(EVSInfo evsInfo) {
-        if (!evsList.contains(evsInfo.getSiteId())) {
+        if (evsList.contains(evsInfo.getSiteId())) {
+            //TODO 通知control企业已经被创建，返回201
 
-            ActorRef evsRef = getContext().actorOf(Props.create(EVS.class, evsInfo), evsInfo.getSiteId());
-//            this.evsRegion.tell(new EVS.Create(evsInfo), getSelf());
+
+        } else {
+            ActorRef evsRegion = getContext().actorOf(Props.create(EVS.class), evsInfo.getSiteId());
+            evsRegion.tell(new EVS.Create(evsInfo), getSender());
             evsList.add(evsInfo.getSiteId());
 
-            IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRef.path().toString(), evsRef, 10);
+            IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
             listProcessor.tell(isRegistMessage, getSelf());
         }
     }

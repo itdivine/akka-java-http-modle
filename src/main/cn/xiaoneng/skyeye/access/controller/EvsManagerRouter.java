@@ -3,8 +3,9 @@ package cn.xiaoneng.skyeye.access.controller;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
-import cn.xiaoneng.skyeye.access.example.bean.EVS;
 import cn.xiaoneng.skyeye.access.remote.Message;
+import cn.xiaoneng.skyeye.enterprise.actor.EVS;
+import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,32 +36,43 @@ public class EvsManagerRouter extends BaseRouter {
                                             log.debug("actorPath = " + actorPath);
                                             return complete(getEVSList(actorPath, new EVSListGet(page, per_page)));
                                         })),
+
                                         post(() -> entity(Unmarshaller.entityToString(), data -> {
-                                            EVS evs = JSON.parseObject(data, EVS.class);
-                                            return complete("post " + evs.toString());
+                                            EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
+                                            String actorPath = "/user" + uri.getPathString();
+                                            return complete(createEVS(actorPath, new EVS.Create(evs)));
                                         }))
-                                                .orElse(complete("Received something else"))
+
+                                        .orElse(complete("请求资源不存在"))
                                 ))
                 );
     }
-
 
     /**
      * 分页查询企业列表
      *
      * @param uri
-     * @param msg
+     * @param cmd
      * @return
      */
-    private HttpResponse getEVSList(String uri, EVSListGet msg) {
+    private HttpResponse getEVSList(String uri, EVSListGet cmd) {
 
-        Message message = new Message(uri, msg);
+        Message message = new Message(uri, cmd);
         Object object = messageDispatcher.publishMsg(message);
 //        Object object = messageDispatcher.sendMsg(message);
 
         return response(object);
     }
 
+
+    private HttpResponse createEVS(String uri, EVS.Create cmd) {
+
+        Message message = new Message(uri, cmd);
+        Object object = messageDispatcher.publishMsg(message);
+//        Object object = messageDispatcher.sendMsg(message);
+
+        return response(object);
+    }
 
 }
 
