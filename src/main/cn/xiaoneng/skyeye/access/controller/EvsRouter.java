@@ -30,7 +30,7 @@ public class EvsRouter extends BaseRouter {
 
         return
                 extractUri(uri ->
-                        path(PathMatchers.segment("enterprises").slash(PathMatchers.segment(Pattern.compile(".*"))), siteId ->
+                        path(PathMatchers.segment("enterprises").slash(PathMatchers.segment()), siteId ->
                                 route(
                                         get(() -> {
                                             String actorPath = "/user" + uri.getPathString();
