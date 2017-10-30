@@ -35,4 +35,8 @@ public class Message {
     public String getActorPath() {
         return actorPath;
     }
+
+    public Object getBody() {
+        return body;
+    }
 }

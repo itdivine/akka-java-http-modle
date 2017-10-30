@@ -1,6 +1,7 @@
 package cn.xiaoneng.skyeye.access.controller;
 
 import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.remote.Message;
@@ -10,37 +11,40 @@ import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 
 /**
- * Created by XuYang on 2017/8/27.
- * 1.查询企业列表
- * 2.创建企业
+ * Created by XuYang on 2017/9/20.
+ *
+ * 1.查询企业信息
+ * 2.修改企业信息
+ * 3.删除企业信息
  */
-public class EvsManagerRouter extends BaseRouter {
+public class EvsRouter extends BaseRouter {
 
-    protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
-
-    private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
+    protected final static Logger log = LoggerFactory.getLogger(EvsRouter.class);
 
     public Route route() {
 
         return
                 extractUri(uri ->
-                        path("enterprises", () ->
+                        path(PathMatchers.segment("enterprises").slash(PathMatchers.segment()), siteId ->
                                 route(
-                                        get(() -> parameterMap(params -> {
-                                            int page = Integer.parseInt(params.getOrDefault("page", "0"));
-                                            int per_page = Integer.parseInt(params.getOrDefault("per_page", per_page_evs_count));
+                                        get(() -> {
                                             String actorPath = "/user" + uri.getPathString();
                                             log.debug("actorPath = " + actorPath);
-                                            return complete(getEVSList(actorPath, new EVSListGet(page, per_page)));
-                                        })),
+                                            return complete(getEVS(actorPath, new EVS.Get()));
+                                        }),
 
-                                        post(() -> entity(Unmarshaller.entityToString(), data -> {
+                                        put(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
                                             String actorPath = "/user" + uri.getPathString();
-                                            return complete(createEVS(actorPath, new EVS.Create(evs)));
+                                            return complete(updateEVS(actorPath, new EVS.Update(evs)));
+                                        })),
+
+                                        delete(() -> entity(Unmarshaller.entityToString(), data -> {
+                                            EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
+                                            String actorPath = "/user" + uri.getPathString();
+                                            return complete(deleteEVS(actorPath, new EVS.Delete()));
                                         }))
 
                                         .orElse(complete("请求资源不存在"))
@@ -48,32 +52,38 @@ public class EvsManagerRouter extends BaseRouter {
                 );
     }
 
-    /**
-     * 分页查询企业列表
-     *
-     * @param uri
-     * @param cmd
-     * @return
-     */
-    private HttpResponse getEVSList(String uri, EVSListGet cmd) {
-
+    private HttpResponse getEVS(String uri, EVS.Get cmd) {
         Message message = new Message(uri, cmd);
-        Object object = messageDispatcher.publishMsg(message);
-//        Object object = messageDispatcher.sendMsg(message);
-
-        return response(object);
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
     }
 
-
-    private HttpResponse createEVS(String uri, EVS.Create cmd) {
-
+    private HttpResponse updateEVS(String uri, EVS.Update cmd) {
         Message message = new Message(uri, cmd);
-        EVS.Result result = (EVS.Result)messageDispatcher.publishMsg(message);
-//        EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
-
-        return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
     }
 
+    private HttpResponse deleteEVS(String uri, EVS.Delete cmd) {
+        Message message = new Message(uri, cmd);
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
+    }
 }
 
 

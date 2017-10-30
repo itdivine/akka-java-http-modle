@@ -52,6 +52,7 @@ public class MessageDispatcher {
 
     /**
      * 通过总线发布消息
+     *
      * @param message 消息内容
      * @return
      */
@@ -61,7 +62,7 @@ public class MessageDispatcher {
 
         try {
             // 发送消息
-            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message);
+            DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message.getBody(), true);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
 
@@ -73,7 +74,8 @@ public class MessageDispatcher {
     }
 
     /**
-     * ActorSelect发送消息(Uncheck)
+     * ActorSelect发送消息
+     *
      * @param message 消息内容
      * @return
      */
@@ -81,7 +83,7 @@ public class MessageDispatcher {
         Object receiveMessage = null;
         try {
             ActorSelection actor = system.actorSelection(message.getActorPath());
-            Future<Object> futureResult = Patterns.ask(actor, message, timeout);
+            Future<Object> futureResult = Patterns.ask(actor, message.getBody(), timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());
