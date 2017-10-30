@@ -11,9 +11,6 @@ import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.regex.Pattern;
-
-import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 
 /**
  * Created by XuYang on 2017/9/20.
@@ -35,13 +32,19 @@ public class EvsRouter extends BaseRouter {
                                         get(() -> {
                                             String actorPath = "/user" + uri.getPathString();
                                             log.debug("actorPath = " + actorPath);
-                                            return complete(getEVS(actorPath, new EVS.Get(siteId)));
+                                            return complete(getEVS(actorPath, new EVS.Get()));
                                         }),
 
-                                        post(() -> entity(Unmarshaller.entityToString(), data -> {
+                                        put(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
                                             String actorPath = "/user" + uri.getPathString();
-                                            return complete(createEVS(actorPath, new EVS.Create(evs)));
+                                            return complete(updateEVS(actorPath, new EVS.Update(evs)));
+                                        })),
+
+                                        delete(() -> entity(Unmarshaller.entityToString(), data -> {
+                                            EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
+                                            String actorPath = "/user" + uri.getPathString();
+                                            return complete(deleteEVS(actorPath, new EVS.Delete()));
                                         }))
 
                                         .orElse(complete("请求资源不存在"))
@@ -49,32 +52,38 @@ public class EvsRouter extends BaseRouter {
                 );
     }
 
-    /**
-     * 查询企业信息
-     *
-     * @param uri
-     * @param cmd
-     * @return
-     */
     private HttpResponse getEVS(String uri, EVS.Get cmd) {
-
         Message message = new Message(uri, cmd);
-        Object object = messageDispatcher.publishMsg(message);
-//        Object object = messageDispatcher.sendMsg(message);
-
-        return response(object);
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
     }
 
-
-    private HttpResponse createEVS(String uri, EVS.Create cmd) {
-
+    private HttpResponse updateEVS(String uri, EVS.Update cmd) {
         Message message = new Message(uri, cmd);
-        EVS.Result result = (EVS.Result)messageDispatcher.publishMsg(message);
-//        EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
-
-        return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
     }
 
+    private HttpResponse deleteEVS(String uri, EVS.Delete cmd) {
+        Message message = new Message(uri, cmd);
+        Object obj = messageDispatcher.publishMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
+    }
 }
 
 

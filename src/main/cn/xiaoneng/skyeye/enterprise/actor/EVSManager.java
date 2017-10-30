@@ -27,7 +27,6 @@ public class EVSManager extends AbstractActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
-
     //EVS分片
 //    private final ActorRef evsRegion;
 
@@ -114,9 +113,10 @@ public class EVSManager extends AbstractActor {
 
             if (message instanceof EVSListGet) {
                 list((EVSListGet)message);
-
             } else if (message instanceof EVS.Create)  {
                 create((EVS.Create)message);
+            } else if (message instanceof EVS.Delete)  {
+                getContext().stop(getSender());
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }

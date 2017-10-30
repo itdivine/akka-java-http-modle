@@ -21,7 +21,7 @@ public class EvsManagerRouter extends BaseRouter {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
 
-    private final String per_page_evs_count = "5"; //分页查询企业列表，每页默认查询企业个数
+    private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {
 

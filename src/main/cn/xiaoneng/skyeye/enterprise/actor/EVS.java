@@ -53,12 +53,15 @@ public class EVS extends AbstractActor {
         }
     }
 
-    public static final class Get implements Serializable {
-        public final String siteId;
-        public Get(String siteId) {
-            this.siteId = siteId;
+    public static final class Update implements Serializable {
+        public final EVSInfo evsInfo;
+        public Update(EVSInfo evsInfo) {
+            this.evsInfo = evsInfo;
         }
     }
+
+    public static final class Get implements Serializable {}
+    public static final class Delete implements Serializable {}
 
     public static final class Result implements Serializable {
         public final int code;
@@ -121,20 +124,36 @@ public class EVS extends AbstractActor {
 
         return receiveBuilder()
                 .match(Create.class, msg -> this.createEVS(msg.evsInfo))
-                .match(Get.class, msg -> getEVS(msg.siteId)) // 查询企业信息
+                .match(Update.class, msg -> this.updateEVS(msg.evsInfo))
+                .match(Get.class, msg -> getEVS())
+                .match(Delete.class, msg -> deleteEVS(msg))
                 .match(String.class, msg -> processHTTPCommand(msg))
+                .match(CommandMessage.class, msg -> processCommandMessage(msg))
                 .matchAny(msg -> log.info("EVS matchAny: " + msg))
                 .build();
     }
 
     public void createEVS(EVSInfo evsInfo) {
-        log.info("Receive message: " + evsInfo);
+        log.debug("createEVS: " + evsInfo);
         this.evsInfo = evsInfo;
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 
-    public void getEVS(String siteId) {
-        log.info("getEVS: " + siteId);
+    public void updateEVS(EVSInfo evsInfo) {
+        log.debug("updateEVS: " + evsInfo);
+        this.evsInfo = evsInfo;
+        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+    }
+
+    public void getEVS() {
+        log.debug("getEVS: " + evsInfo.getSiteId());
+        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+    }
+
+    public void deleteEVS(Delete msg) {
+        log.debug("deleteEVS: " + evsInfo.getSiteId());
+        //父actor停止
+        getContext().parent().tell(msg, getSelf());
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 
@@ -167,7 +186,7 @@ public class EVS extends AbstractActor {
                     evsInfo.update(info);
                     getSender().tell("{\"status\":200,\"body\":" + evsInfo.toJSONString() + "}", getSelf());
 
-                    EVSCommandMessage updateEVS = new EVSCommandMessage(Operation.UPDATE, 10, evsInfo);
+//                    EVSCommandMessage updateEVS = new EVSCommandMessage(Operation.UPDATE, 10, evsInfo);
 //                    evsStore.tell(updateEVS, getSelf());
 
                     //发布企业信息
@@ -191,6 +210,19 @@ public class EVS extends AbstractActor {
 
                 default:
 
+            }
+
+        } catch (Exception e) {
+            log.error("Exception " + e.getMessage() + "  message= " + message);
+        }
+    }
+
+    private void processCommandMessage(CommandMessage message) {
+
+        try {
+            if(message.getOperation().equals(Operation.GET)) {
+                DocumentMessage documentMessage = new DocumentMessage(null, 10, evsInfo.toJSONString(), ((CommandMessage)message).getMsgId());
+                getSender().tell(documentMessage, getSelf());
             }
 
         } catch (Exception e) {
