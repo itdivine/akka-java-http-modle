@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-cluster-sharding_2.12</artifactId>
+            <version>${akka_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_2.12</artifactId>
             <version>${akka_http_version}</version>
         </dependency>

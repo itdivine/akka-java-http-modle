@@ -80,7 +80,7 @@ public class EVS extends AbstractActor {
         try {
             log.info("EVS init success, path = " + getSelf().path());
 
-            //订阅集群事件 add by liangyongheng
+            //订阅集群事件
             mediator = DistributedPubSub.get(this.getContext().system()).mediator();
             mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
 

@@ -2,9 +2,14 @@ package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.cluster.sharding.ClusterSharding;
+import akka.cluster.sharding.ClusterShardingSettings;
+import akka.cluster.sharding.ShardRegion;
+import akka.japi.Option;
 import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
@@ -28,7 +33,7 @@ public class EVSManager extends AbstractActor {
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
     //EVS分片
-//    private final ActorRef evsRegion;
+    private final ActorRef evsRegion;
 
     private ActorRef mediator;
 
@@ -37,62 +42,65 @@ public class EVSManager extends AbstractActor {
     // siteId evsActorRef
     private static List<String> evsList = new ArrayList<String>();
 
-//    static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
-//
-//        @Override
-//        public String entityId(Object message) {
-//            if (message instanceof EVS.Create) {
-//                System.out.println("entityId: " + ((EVS.Create) message).evsInfo.getSiteId());
-//                return String.valueOf(((EVS.Create) message).evsInfo.getSiteId());
-//            }
-//            else
-//                return null;
-//        }
-//
-//        @Override
-//        public Object entityMessage(Object message) {
-//            if (message instanceof EVS.Create) {
-//                System.out.println("entityMessage: " + ((EVS.Create) message).evsInfo.getSiteId());
-//                return message;
-//            }
-//            else
-//                return message;
-//        }
-//
-//        @Override
-//        public String shardId(Object message) {
-//            if (message instanceof EVS.Create) {
-//                System.out.println("shardId: " + ((EVS.Create) message).evsInfo.getSiteId());
-//                return ((EVS.Create) message).evsInfo.getSiteId();
-//            } else {
-//                return null;
-//            }
-//        }
-//    };
+    static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
 
-//    public EVSManager() {
-//        //创建Actor分片
-//        ActorSystem system = getContext().getSystem();
-//        Option<String> roleOption = Option.none();
-//        ClusterShardingSettings settings = ClusterShardingSettings.create(system);
-//        evsRegion = ClusterSharding.get(system)
-//                .start(
-//                        "EVS",
-//                        Props.create(EVS.class),
-//                        settings,
-//                        messageExtractor);
-//    }
+        @Override
+        public String entityId(Object message) {
+            if (message instanceof EVS.Create) {
+                System.out.println("entityId: " + ((EVS.Create) message).evsInfo.getSiteId());
+                return String.valueOf(((EVS.Create) message).evsInfo.getSiteId());
+            }
+            else
+                return null;
+        }
+
+        @Override
+        public Object entityMessage(Object message) {
+            if (message instanceof EVS.Create) {
+                System.out.println("entityMessage: " + ((EVS.Create) message).evsInfo.getSiteId());
+                return message;
+            }
+            else
+                return message;
+        }
+
+        @Override
+        public String shardId(Object message) {
+            if (message instanceof EVS.Create) {
+                System.out.println("shardId: " + ((EVS.Create) message).evsInfo.getSiteId());
+                return ((EVS.Create) message).evsInfo.getSiteId();
+            } else {
+                return null;
+            }
+        }
+    };
+
+    public EVSManager() {
+        //创建Actor分片
+        ActorSystem system = getContext().getSystem();
+        Option<String> roleOption = Option.none();
+        ClusterShardingSettings settings = ClusterShardingSettings.create(system);
+        evsRegion = ClusterSharding.get(system)
+                .start(
+                        "EVS",
+                        Props.create(EVS.class),
+                        settings,
+                        messageExtractor);
+    }
 
 
 
     @Override
     public void preStart() throws Exception {
 
+        // /user/enterprises
         log.info("EVSManager init success, path = " + getSelf().path().toStringWithoutAddress());
 
         super.preStart();
         listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
+        //中介者模式(Mediator)：用一个中介对象来分装一系列的对象交互。中介者使各对象不需要显示地相互引用，从而使其耦合松散
+        //订阅集群事件
         mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
 
@@ -138,16 +146,11 @@ public class EVSManager extends AbstractActor {
                 return;
             }
 
-            if (evsList.contains(siteId)) {
-                getSender().tell(new EVS.Result(201, null), getSelf());
+            createEVS(evsInfo);
 
-            } else {
-                createEVS(evsInfo);
+            //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
 
-                //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
-
-                //initDefaultSourceScript(evsInfo.getSiteId());
-            }
+            //initDefaultSourceScript(evsInfo.getSiteId());
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
@@ -161,7 +164,10 @@ public class EVSManager extends AbstractActor {
             getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
 
         } else {
-            ActorRef evsRegion = getContext().actorOf(Props.create(EVS.class), evsInfo.getSiteId());
+            //单点创建企业
+            //ActorRef evsRegion = getContext().actorOf(Props.create(EVS.class), evsInfo.getSiteId());
+
+            //分片创建企业
             evsRegion.tell(new EVS.Create(evsInfo), getSender());
             evsList.add(evsInfo.getSiteId());
 
