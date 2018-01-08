@@ -2,10 +2,12 @@ package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.EVSCommandMessage;
+import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import cn.xiaoneng.skyeye.util.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -42,8 +44,8 @@ public class EVS extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
-        init();
         super.preStart();
+        init();
     }
 
     public static final class Create implements Serializable {
@@ -78,26 +80,26 @@ public class EVS extends AbstractActor {
     private void init() {
 
         try {
-            log.info("EVS init success, path = " + getSelf().path());
+            log.info("EVS init success, path = " + getSelf().path().toStringWithoutAddress());
 
             //订阅集群事件
             mediator = DistributedPubSub.get(this.getContext().system()).mediator();
             mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
 
-//            evsStore = getContext().actorOf(Props.create(EVSStoreActor.class), ActorNames.EVSSERVICE);
+//            evsStore = getContext().actorOf(Props.createEVS(EVSStoreActor.class), ActorNames.EVSSERVICE);
 //            evsStore.tell(new EVSCommandMessage(Operation.CREATE, 10, evsInfo), getSelf());
 
             //百度关键词次数从配额中获取
 //            long keyWordCount = evsInfo.getQuota().getBaidu_keyword_count();
-//            getContext().actorOf(Props.create(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON, keyWordCount}), ActorNames.COLLECTOR);
+//            getContext().actorOf(Props.createEVS(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON, keyWordCount}), ActorNames.COLLECTOR);
 
             Thread.sleep(100);
 
-//            getContext().actorOf(Props.create(NavigationSpaceManager.class), ActorNames.NavigationManager);
-//            getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
-//            getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
-//            getContext().actorOf(Props.create(FunActor.class), ActorNames.AUTH);
-//            getContext().actorOf(Props.create(KafkaManager.class), ActorNames.KafkaManager);
+//            getContext().actorOf(Props.createEVS(NavigationSpaceManager.class), ActorNames.NavigationManager);
+//            getContext().actorOf(Props.createEVS(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
+//            getContext().actorOf(Props.createEVS(TrackerManager.class), ActorNames.TrackerManager);
+//            getContext().actorOf(Props.createEVS(FunActor.class), ActorNames.AUTH);
+//            getContext().actorOf(Props.createEVS(KafkaManager.class), ActorNames.KafkaManager);
 
             //发布企业信息
 //            EvsInfoChangedEvent event = new EvsInfoChangedEvent(evsInfo);
@@ -137,6 +139,10 @@ public class EVS extends AbstractActor {
         log.debug("createEVS: " + evsInfo);
         this.evsInfo = evsInfo;
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+
+        //注册企业
+        ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
+        actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
     }
 
     public void updateEVS(EVSInfo evsInfo) {

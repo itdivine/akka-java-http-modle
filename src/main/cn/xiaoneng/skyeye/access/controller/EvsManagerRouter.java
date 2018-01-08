@@ -21,6 +21,7 @@ public class EvsManagerRouter extends BaseRouter {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
 
+    private final String enterprisesProxyPath = "/user/enterprisesProxy";
     private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {
@@ -32,15 +33,16 @@ public class EvsManagerRouter extends BaseRouter {
                                         get(() -> parameterMap(params -> {
                                             int page = Integer.parseInt(params.getOrDefault("page", "0"));
                                             int per_page = Integer.parseInt(params.getOrDefault("per_page", per_page_evs_count));
-                                            String actorPath = "/user" + uri.getPathString();
-                                            log.debug("actorPath = " + actorPath);
-                                            return complete(getEVSList(actorPath, new EVSListGet(page, per_page)));
+//                                            String actorPath = "/user" + uri.getPathString();
+//                                            log.debug("actorPath = " + actorPath);
+                                            return complete(getEVSList(enterprisesProxyPath, new EVSListGet(page, per_page)));
                                         })),
 
                                         post(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
-                                            String actorPath = "/user" + uri.getPathString();
-                                            return complete(createEVS(actorPath, new EVS.Create(evs)));
+                                            //String actorPath = "/user" + uri.getPathString();
+                                            //String actorPath = "/user/enterprisesProxy";
+                                            return complete(createEVS(enterprisesProxyPath, new EVS.Create(evs)));
                                         }))
 
                                         .orElse(complete("请求资源不存在"))
@@ -58,8 +60,8 @@ public class EvsManagerRouter extends BaseRouter {
     private HttpResponse getEVSList(String uri, EVSListGet cmd) {
 
         Message message = new Message(uri, cmd);
-        Object object = messageDispatcher.publishMsg(message);
-//        Object object = messageDispatcher.sendMsg(message);
+//        Object object = messageDispatcher.publishMsg(message);
+        Object object = messageDispatcher.sendMsg(message);
 
         return response(object);
     }
@@ -68,8 +70,8 @@ public class EvsManagerRouter extends BaseRouter {
     private HttpResponse createEVS(String uri, EVS.Create cmd) {
 
         Message message = new Message(uri, cmd);
-        EVS.Result result = (EVS.Result)messageDispatcher.publishMsg(message);
-//        EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
+//        EVS.Result result = (EVS.Result)messageDispatcher.publishMsg(message);
+        EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
 
         return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
     }

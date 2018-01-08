@@ -23,6 +23,8 @@ public class EvsRouter extends BaseRouter {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsRouter.class);
 
+    private final String path = "/system/sharding/EVS/";
+
     public Route route() {
 
         return
@@ -30,20 +32,19 @@ public class EvsRouter extends BaseRouter {
                         path(PathMatchers.segment("enterprises").slash(PathMatchers.segment()), siteId ->
                                 route(
                                         get(() -> {
-                                            String actorPath = "/user" + uri.getPathString();
+                                            String actorPath = path + siteId + "/" + siteId;
                                             log.debug("actorPath = " + actorPath);
                                             return complete(getEVS(actorPath, new EVS.Get()));
                                         }),
 
                                         put(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
-                                            String actorPath = "/user" + uri.getPathString();
+                                            String actorPath = path + siteId + "/" + siteId;
                                             return complete(updateEVS(actorPath, new EVS.Update(evs)));
                                         })),
 
                                         delete(() -> entity(Unmarshaller.entityToString(), data -> {
-                                            EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
-                                            String actorPath = "/user" + uri.getPathString();
+                                            String actorPath = path + siteId + "/" + siteId;
                                             return complete(deleteEVS(actorPath, new EVS.Delete()));
                                         }))
 

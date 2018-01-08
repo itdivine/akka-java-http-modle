@@ -3,7 +3,12 @@ package cn.xiaoneng.skyeye.access;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.actor.AddressFromURIString;
+import akka.actor.PoisonPill;
 import akka.actor.Props;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import akka.cluster.singleton.ClusterSingletonProxy;
+import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -48,7 +53,7 @@ public class AccessServer {
 
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = routers.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
-                ConnectHttp.toHost("localhost", 8080),materializer);
+                ConnectHttp.toHost(config.host, config.port),materializer);
 
 //        System.out.println("Server online at http://localhost:8080/\nPress RETURN to stop...");
 //        System.in.read(); // let it run until user presses return
@@ -71,13 +76,23 @@ public class AccessServer {
                 config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("clusterAddr")), 6000L);
 
         // boot up server using the route as defined below
-//        ActorSystem system = ActorSystem.create("routes");
+//        ActorSystem system = ActorSystem.createEVS("routes");
         ActorSystem system = ActorSystem.create(config.getString("systemName"), config);
 
-        system.actorOf(Props.create(EVSManager.class), "enterprises");
+        //system.actorOf(Props.create(EVSManager.class), "enterprises");
+        ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
+        system.actorOf(ClusterSingletonManager.props(
+                Props.create(EVSManager.class), PoisonPill.getInstance(), settings),
+                "enterprises");
+
+        // Is an actor on each node that keeps track of where current single master exists
+        // The ClusterSingletonProxy receives text from users and delegates to the current StatsService,the single master.
+        // It listens to cluster events to lookup the StatsService on the oldest node
+        ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
+        system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
 
         //方案一：HTTP MODLE：新的ActorSystem
-//            ActorSystem system1 = ActorSystem.create(COMMON.systemName, accessConfig.config());
+//            ActorSystem system1 = ActorSystem.createEVS(COMMON.systemName, accessConfig.config());
 //            new AccessServer(system1, accessConfig).run();
 
         //方案二：HTTP MODLE：同一个ActorSystem

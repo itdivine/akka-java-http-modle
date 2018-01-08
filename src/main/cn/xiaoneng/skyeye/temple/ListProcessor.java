@@ -1,7 +1,7 @@
 package cn.xiaoneng.skyeye.temple;
 
+import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
@@ -22,11 +22,11 @@ import java.util.*;
  *
  * Created by Administrator on 2016/8/1.
  */
-public class ListProcessor extends UntypedActor {
+public class ListProcessor extends AbstractActor {
 
     private ActorRef mediator;
 
-    protected final static Logger log = LoggerFactory.getLogger(ListProcessor.class);
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
     // 接收者列表(按时间顺序： 近到远)
     private LinkedHashMap<String,IsRegistMessage> registors = new LinkedHashMap<String, IsRegistMessage>();
@@ -50,15 +50,18 @@ public class ListProcessor extends UntypedActor {
         super.preStart();
     }
 
-
     @Override
+    public Receive createReceive() {
+        return receiveBuilder()
+                .matchAny(msg -> onReceive(msg))
+                .build();
+    }
+
     public void onReceive(Object message) {
 
         try {
             if(message instanceof String) {
-
                 processHTTPCommand((String)message);
-
             }
             // 接收者注册
             else if(message instanceof IsRegistMessage) {

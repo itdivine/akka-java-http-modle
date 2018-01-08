@@ -37,7 +37,7 @@ public class EVSManager extends AbstractActor {
 
     private ActorRef mediator;
 
-    protected ActorRef listProcessor;
+    protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
     // siteId evsActorRef
     private static List<String> evsList = new ArrayList<String>();
@@ -50,8 +50,7 @@ public class EVSManager extends AbstractActor {
                 System.out.println("entityId: " + ((EVS.Create) message).evsInfo.getSiteId());
                 return String.valueOf(((EVS.Create) message).evsInfo.getSiteId());
             }
-            else
-                return null;
+            return null;
         }
 
         @Override
@@ -60,8 +59,7 @@ public class EVSManager extends AbstractActor {
                 System.out.println("entityMessage: " + ((EVS.Create) message).evsInfo.getSiteId());
                 return message;
             }
-            else
-                return message;
+            return message;
         }
 
         @Override
@@ -95,9 +93,9 @@ public class EVSManager extends AbstractActor {
 
         // /user/enterprises
         log.info("EVSManager init success, path = " + getSelf().path().toStringWithoutAddress());
+        log.info("EVSManager init success, path = " + getSelf().path());
 
         super.preStart();
-        listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
         //中介者模式(Mediator)：用一个中介对象来分装一系列的对象交互。中介者使各对象不需要显示地相互引用，从而使其耦合松散
         //订阅集群事件
@@ -122,7 +120,7 @@ public class EVSManager extends AbstractActor {
             if (message instanceof EVSListGet) {
                 list((EVSListGet)message);
             } else if (message instanceof EVS.Create)  {
-                create((EVS.Create)message);
+                createEVS((EVS.Create)message);
             } else if (message instanceof EVS.Delete)  {
                 getContext().stop(getSender());
             } else {
@@ -135,7 +133,7 @@ public class EVSManager extends AbstractActor {
         }
     }
 
-    protected void create(EVS.Create message) {
+    protected void createEVS(EVS.Create message) {
 
         try {
             EVSInfo evsInfo = message.evsInfo;
@@ -146,7 +144,21 @@ public class EVSManager extends AbstractActor {
                 return;
             }
 
-            createEVS(evsInfo);
+            if (evsList.contains(evsInfo.getSiteId())) {
+                //企业已经被创建，返回201
+                getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
+
+            } else {
+                //单点创建企业
+                //ActorRef evsRegion = getContext().actorOf(Props.createEVS(EVS.class), evsInfo.getSiteId());
+
+                //分片创建企业
+                evsRegion.tell(new EVS.Create(evsInfo), getSender());
+                evsList.add(evsInfo.getSiteId());
+
+//                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
+//                listProcessor.tell(isRegistMessage, getSelf());
+            }
 
             //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
 
@@ -155,24 +167,6 @@ public class EVSManager extends AbstractActor {
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
             getSender().tell("{\"code\":400,\"body\":\"\"}", getSelf());
-        }
-    }
-
-    private void createEVS(EVSInfo evsInfo) {
-        if (evsList.contains(evsInfo.getSiteId())) {
-            //企业已经被创建，返回201
-            getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
-
-        } else {
-            //单点创建企业
-            //ActorRef evsRegion = getContext().actorOf(Props.create(EVS.class), evsInfo.getSiteId());
-
-            //分片创建企业
-            evsRegion.tell(new EVS.Create(evsInfo), getSender());
-            evsList.add(evsInfo.getSiteId());
-
-            IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
-            listProcessor.tell(isRegistMessage, getSelf());
         }
     }
 

@@ -3,5 +3,4 @@
 /target/
 /log/
 *.lck
-/log/
 /journal/
