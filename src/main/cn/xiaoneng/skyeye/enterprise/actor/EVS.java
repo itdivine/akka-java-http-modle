@@ -1,6 +1,7 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorPath;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.cluster.pubsub.DistributedPubSub;
@@ -16,13 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
-//import cn.xiaoneng.skyeye.auth.actor.FunActor;
-//import cn.xiaoneng.skyeye.bodyspace.actor.BodySpaceManager;
-//import cn.xiaoneng.skyeye.collector.actor.Collector;
-//import cn.xiaoneng.skyeye.collector.util.CollectorStatus;
-//import cn.xiaoneng.skyeye.config.db.MySqlDataAccess;
-//import cn.xiaoneng.skyeye.enterprise.event.EvsInfoChangedEvent;
-//import cn.xiaoneng.skyeye.enterprise.service.EVSStoreActor;
 
 
 /**
@@ -34,6 +28,7 @@ public class EVS extends AbstractActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
+    private String siteId;
     private EVSInfo evsInfo;
 
     private ActorRef mediator;
@@ -80,11 +75,14 @@ public class EVS extends AbstractActor {
     private void init() {
 
         try {
-            log.info("EVS init success, path = " + getSelf().path().toStringWithoutAddress());
+            ActorPath path = getSelf().path();
+            siteId = path.name();
+            log.info("EVS init success, path = " + path);
 
-            //订阅集群事件
+
+            //订阅集群事件：可能不需要了，没有Actor会通过路径访问
             mediator = DistributedPubSub.get(this.getContext().system()).mediator();
-            mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
+            mediator.tell(new DistributedPubSubMediator.Subscribe(siteId, ActorNames.NSkyEye, getSelf()), getSelf());
 
 //            evsStore = getContext().actorOf(Props.createEVS(EVSStoreActor.class), ActorNames.EVSSERVICE);
 //            evsStore.tell(new EVSCommandMessage(Operation.CREATE, 10, evsInfo), getSelf());
@@ -106,7 +104,11 @@ public class EVS extends AbstractActor {
 //            this.getContext().system().eventStream().publish(event);
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Exception " + e.getMessage());
+            StackTraceElement[] er = e.getStackTrace();
+            for (int i = 0; i < er.length; i++) {
+                log.info(er[i].toString());
+            }
         }
     }
 
@@ -128,7 +130,7 @@ public class EVS extends AbstractActor {
                 .match(Create.class, msg -> this.createEVS(msg.evsInfo))
                 .match(Update.class, msg -> this.updateEVS(msg.evsInfo))
                 .match(Get.class, msg -> getEVS())
-                .match(Delete.class, msg -> deleteEVS(msg))
+//                .match(Delete.class, msg -> deleteEVS(msg))
                 .match(String.class, msg -> processHTTPCommand(msg))
                 .match(CommandMessage.class, msg -> processCommandMessage(msg))
                 .matchAny(msg -> log.info("EVS matchAny: " + msg))
@@ -156,12 +158,12 @@ public class EVS extends AbstractActor {
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 
-    public void deleteEVS(Delete msg) {
+    /*public void deleteEVS(Delete msg) {
         log.debug("deleteEVS: " + evsInfo.getSiteId());
         //父actor停止
         getContext().parent().tell(msg, getSelf());
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
-    }
+    }*/
 
     private void processHTTPCommand(String message) {
 

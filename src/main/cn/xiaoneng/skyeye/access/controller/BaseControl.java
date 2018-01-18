@@ -11,7 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 /**
  * Created by XY on 2017/8/30.
  */
-public class BaseRouter extends AllDirectives {
+public class BaseControl extends AllDirectives {
 
     public MessageDispatcher messageDispatcher = MessageDispatcher.getInstance();
 
@@ -49,8 +49,9 @@ public class BaseRouter extends AllDirectives {
         return badResponse("");
     }
 
+    //{"errcode":40013,"errmsg":"invalid appid"}
     public HttpResponse badResponse(String reason) {
-        String body = "{\"message\":\"" + reason + "\"}";
+        String body = "{\"errmsg\":\"" + reason + "\"}";
         return HttpResponse.create().withStatus(StatusCodes.BadRequest()).withEntity(ContentTypes.APPLICATION_JSON, body);
     }
 }

@@ -1,6 +1,0 @@
-2017-09-18 22:51:58 [NSkyEye-akka.actor.default-dispatcher-18] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
-2017-09-18 22:51:58 [NSkyEye-akka.actor.default-dispatcher-20] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#694812890]
-2017-09-18 22:53:21 [NSkyEye-akka.actor.default-dispatcher-19] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]
-2017-09-18 22:57:05 [NSkyEye-akka.actor.default-dispatcher-15] INFO  /user/enterprises - EVSManager init success, path = /user/enterprises
-2017-09-18 22:57:05 [NSkyEye-akka.actor.default-dispatcher-17] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/system/distributedPubSubMediator#126216091]
-2017-09-18 22:57:17 [NSkyEye-akka.actor.default-dispatcher-18] INFO  /user/enterprises - Receive message: Actor[akka://NSkyEye/temp/$a]

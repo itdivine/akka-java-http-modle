@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
  * 2.修改企业信息
  * 3.删除企业信息
  */
-public class EvsRouter extends BaseRouter {
+public class EvsControl extends BaseControl {
 
-    protected final static Logger log = LoggerFactory.getLogger(EvsRouter.class);
+    protected final static Logger log = LoggerFactory.getLogger(EvsControl.class);
 
     private final String path = "/system/sharding/EVS/";
 
@@ -32,20 +32,18 @@ public class EvsRouter extends BaseRouter {
                         path(PathMatchers.segment("enterprises").slash(PathMatchers.segment()), siteId ->
                                 route(
                                         get(() -> {
-                                            String actorPath = path + siteId + "/" + siteId;
-                                            log.debug("actorPath = " + actorPath);
-                                            return complete(getEVS(actorPath, new EVS.Get()));
+                                            //String actorPath = path + siteId + "/" + siteId;
+                                            log.debug("actorPath = " + siteId);
+                                            return complete(getEVS(siteId, new EVS.Get()));
                                         }),
 
                                         put(() -> entity(Unmarshaller.entityToString(), data -> {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
-                                            String actorPath = path + siteId + "/" + siteId;
-                                            return complete(updateEVS(actorPath, new EVS.Update(evs)));
+                                            return complete(updateEVS(siteId, new EVS.Update(evs)));
                                         })),
 
                                         delete(() -> entity(Unmarshaller.entityToString(), data -> {
-                                            String actorPath = path + siteId + "/" + siteId;
-                                            return complete(deleteEVS(actorPath, new EVS.Delete()));
+                                            return complete(deleteEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Delete()));
                                         }))
 
                                         .orElse(complete("请求资源不存在"))
@@ -76,8 +74,16 @@ public class EvsRouter extends BaseRouter {
     }
 
     private HttpResponse deleteEVS(String uri, EVS.Delete cmd) {
+
+        Object obj = null;
         Message message = new Message(uri, cmd);
-        Object obj = messageDispatcher.publishMsg(message);
+
+        try {
+            obj = messageDispatcher.sendMsg(message);
+        } catch (Exception e) {
+            log.error("Exception: " + e.getMessage());
+        }
+
         if(obj != null) {
             EVS.Result result = (EVS.Result)obj;
             return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));

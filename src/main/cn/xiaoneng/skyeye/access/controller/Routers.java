@@ -10,8 +10,8 @@ import cn.xiaoneng.skyeye.access.example.routes.BaseRoutes;
 public class Routers extends AllDirectives {
 
     public Route createRoute() {
-        EvsManagerRouter evsManagerRouter = new EvsManagerRouter();
-        EvsRouter evsRouter = new EvsRouter();
-        return route(evsManagerRouter.route(), evsRouter.route(), BaseRoutes.baseRoutes());
+        EvsManagerControl evsManagerRouter = new EvsManagerControl();
+        EvsControl evsControl = new EvsControl();
+        return route(evsManagerRouter.route(), evsControl.route(), BaseRoutes.baseRoutes());
     }
 }

@@ -1,7 +1,7 @@
 package cn.xiaoneng.skyeye.access;
 
 import akka.http.javadsl.server.Route;
-import cn.xiaoneng.skyeye.access.controller.EvsManagerRouter;
+import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
 import cn.xiaoneng.skyeye.access.example.routes.BaseRoutes;
 import akka.http.javadsl.server.AllDirectives;
 
@@ -11,7 +11,7 @@ import akka.http.javadsl.server.AllDirectives;
 public class Routers extends AllDirectives {
 
     public Route createRoute() {
-        EvsManagerRouter evsManagerRouter = new EvsManagerRouter();
+        EvsManagerControl evsManagerRouter = new EvsManagerControl();
         return route(evsManagerRouter.route(), BaseRoutes.baseRoutes());
     }
 }

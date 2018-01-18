@@ -17,11 +17,11 @@ import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
  * 1.查询企业列表
  * 2.创建企业
  */
-public class EvsManagerRouter extends BaseRouter {
+public class EvsManagerControl extends BaseControl {
 
-    protected final static Logger log = LoggerFactory.getLogger(EvsManagerRouter.class);
+    protected final static Logger log = LoggerFactory.getLogger(EvsManagerControl.class);
 
-    private final String enterprisesProxyPath = "/user/enterprisesProxy";
+    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
     private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {

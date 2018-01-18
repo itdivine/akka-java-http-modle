@@ -39,15 +39,10 @@ public class ListProcessor extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
+        super.preStart();
         log.info("ListProcessor init " + getSelf().path());
-
         mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
-
-        log.info("ListProcessor init success, path = " + getSelf().path());
-
-
-        super.preStart();
     }
 
     @Override

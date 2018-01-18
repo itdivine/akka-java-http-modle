@@ -39,7 +39,7 @@ public class EVSManager extends AbstractActor {
 
     protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
-    // siteId evsActorRef
+    // siteId EVSActorRef 可以被优化掉，通过判断子EVS Acotr是否存在
     private static List<String> evsList = new ArrayList<String>();
 
     static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
@@ -56,17 +56,20 @@ public class EVSManager extends AbstractActor {
         @Override
         public Object entityMessage(Object message) {
             if (message instanceof EVS.Create) {
-                System.out.println("entityMessage: " + ((EVS.Create) message).evsInfo.getSiteId());
                 return message;
             }
-            return message;
+            else
+                return message;
         }
 
         @Override
         public String shardId(Object message) {
+            int numberOfShards = 100;
             if (message instanceof EVS.Create) {
-                System.out.println("shardId: " + ((EVS.Create) message).evsInfo.getSiteId());
-                return ((EVS.Create) message).evsInfo.getSiteId();
+                String siteId = ((EVS.Create) message).evsInfo.getSiteId();
+                int shardId = Math.abs(siteId.hashCode() % numberOfShards);
+                System.out.println("shardId: " + shardId);
+                return String.valueOf(shardId);
             } else {
                 return null;
             }
@@ -76,7 +79,7 @@ public class EVSManager extends AbstractActor {
     public EVSManager() {
         //创建Actor分片
         ActorSystem system = getContext().getSystem();
-        Option<String> roleOption = Option.none();
+        //Option<String> roleOption = Option.none();
         ClusterShardingSettings settings = ClusterShardingSettings.create(system);
         evsRegion = ClusterSharding.get(system)
                 .start(
@@ -85,7 +88,6 @@ public class EVSManager extends AbstractActor {
                         settings,
                         messageExtractor);
     }
-
 
 
     @Override
@@ -107,7 +109,6 @@ public class EVSManager extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-//                .match(EVSListGet.class, msg -> list(msg))
                 .matchAny(msg -> onReceive(msg))
                 .build();
     }
@@ -122,7 +123,9 @@ public class EVSManager extends AbstractActor {
             } else if (message instanceof EVS.Create)  {
                 createEVS((EVS.Create)message);
             } else if (message instanceof EVS.Delete)  {
-                getContext().stop(getSender());
+                // TODO 如何停止企业Actor ?
+                getContext().stop();
+                getSender().tell(new EVS.Result(200, null), getSelf());
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -149,11 +152,12 @@ public class EVSManager extends AbstractActor {
                 getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
 
             } else {
-                //单点创建企业
+                //单服务节点创建企业
                 //ActorRef evsRegion = getContext().actorOf(Props.createEVS(EVS.class), evsInfo.getSiteId());
 
                 //分片创建企业
-                evsRegion.tell(new EVS.Create(evsInfo), getSender());
+//                evsRegion.tell(new EVS.Create(evsInfo), getSender());
+                evsRegion.tell(message, getSender());
                 evsList.add(evsInfo.getSiteId());
 
 //                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
