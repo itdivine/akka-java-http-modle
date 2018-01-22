@@ -42,9 +42,10 @@ public class EvsControl extends BaseControl {
                                             return complete(updateEVS(siteId, new EVS.Update(evs)));
                                         })),
 
-                                        delete(() -> entity(Unmarshaller.entityToString(), data -> {
-                                            return complete(deleteEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Delete()));
-                                        }))
+                                        delete(() -> {
+                                            return complete(deleteEVS(siteId, new EVS.Delete(siteId)));
+//                                            return complete(deleteEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Delete(siteId)));
+                                        })
 
                                         .orElse(complete("请求资源不存在"))
                                 ))
@@ -79,7 +80,7 @@ public class EvsControl extends BaseControl {
         Message message = new Message(uri, cmd);
 
         try {
-            obj = messageDispatcher.sendMsg(message);
+            obj = messageDispatcher.publishMsg(message);
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());
         }

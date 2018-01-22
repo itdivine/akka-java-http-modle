@@ -1,11 +1,12 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorPath;
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
+import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.cluster.sharding.ShardRegion;
+import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
+import cn.xiaoneng.skyeye.access.remote.Message;
+import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.EVSCommandMessage;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
@@ -58,7 +59,12 @@ public class EVS extends AbstractActor {
     }
 
     public static final class Get implements Serializable {}
-    public static final class Delete implements Serializable {}
+    public static final class Delete implements Serializable {
+        public final String siteId;
+        public Delete(String siteId) {
+            this.siteId = siteId;
+        }
+    }
 
     public static final class Result implements Serializable {
         public final int code;
@@ -130,7 +136,7 @@ public class EVS extends AbstractActor {
                 .match(Create.class, msg -> this.createEVS(msg.evsInfo))
                 .match(Update.class, msg -> this.updateEVS(msg.evsInfo))
                 .match(Get.class, msg -> getEVS())
-//                .match(Delete.class, msg -> deleteEVS(msg))
+                .match(Delete.class, msg -> deleteEVS(msg))
                 .match(String.class, msg -> processHTTPCommand(msg))
                 .match(CommandMessage.class, msg -> processCommandMessage(msg))
                 .matchAny(msg -> log.info("EVS matchAny: " + msg))
@@ -158,12 +164,16 @@ public class EVS extends AbstractActor {
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 
-    /*public void deleteEVS(Delete msg) {
+    public void deleteEVS(Delete msg) {
         log.debug("deleteEVS: " + evsInfo.getSiteId());
-        //父actor停止
-        getContext().parent().tell(msg, getSelf());
+        //1.通知EvsManager删除缓存列表中的siteId
+        ActorSelection actor = getContext().getSystem().actorSelection(EvsManagerControl.enterprisesProxyPath);
+        actor.tell(msg, getSelf());
+        //2.停止EVS Actor
+        getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
+        //3.返回结果
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
-    }*/
+    }
 
     private void processHTTPCommand(String message) {
 

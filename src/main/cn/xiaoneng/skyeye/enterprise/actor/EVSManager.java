@@ -64,17 +64,21 @@ public class EVSManager extends AbstractActor {
 
         @Override
         public String shardId(Object message) {
-            int numberOfShards = 100;
             if (message instanceof EVS.Create) {
                 String siteId = ((EVS.Create) message).evsInfo.getSiteId();
-                int shardId = Math.abs(siteId.hashCode() % numberOfShards);
-                System.out.println("shardId: " + shardId);
-                return String.valueOf(shardId);
+                return getShardId(siteId);
             } else {
                 return null;
             }
         }
     };
+
+    private static String getShardId(String siteId) {
+        int numberOfShards = 100;
+        int shardId = Math.abs(siteId.hashCode() % numberOfShards);
+        System.out.println("shardId: " + shardId);
+        return String.valueOf(shardId);
+    }
 
     public EVSManager() {
         //创建Actor分片
@@ -123,9 +127,7 @@ public class EVSManager extends AbstractActor {
             } else if (message instanceof EVS.Create)  {
                 createEVS((EVS.Create)message);
             } else if (message instanceof EVS.Delete)  {
-                // TODO 如何停止企业Actor ?
-                getContext().stop();
-                getSender().tell(new EVS.Result(200, null), getSelf());
+                evsList.remove(((EVS.Delete) message).siteId);
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -149,7 +151,7 @@ public class EVSManager extends AbstractActor {
 
             if (evsList.contains(evsInfo.getSiteId())) {
                 //企业已经被创建，返回201
-                getSender().tell("{\"code\":201,\"body\":\"\"}", getSelf());
+                getSender().tell(new EVS.Result(201, null), getSelf());
 
             } else {
                 //单服务节点创建企业
