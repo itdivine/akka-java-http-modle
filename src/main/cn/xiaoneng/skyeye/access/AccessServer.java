@@ -19,6 +19,7 @@ import akka.stream.javadsl.Flow;
 import cn.xiaoneng.skyeye.access.controller.Routers;
 import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import cn.xiaoneng.skyeye.enterprise.actor.EVSManager;
+import cn.xiaoneng.stats.StatsService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -39,65 +40,80 @@ public class AccessServer {
 
     public void start() {
 
-//        ServerSettings serverSettings = HttpCodeRegister.addCustomCode(system);
-
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
 
-        //In order to access all directives we need an instance where the routes are define.
-//        HttpServer app = new HttpServer();
-
         MessageDispatcher.getInstance().init(system, config);
-
         Routers routers = new Routers();
 
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = routers.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
                 ConnectHttp.toHost(config.host, config.port),materializer);
 
-//        System.out.println("Server online at http://localhost:8080/\nPress RETURN to stop...");
-//        System.in.read(); // let it run until user presses return
-//
-//        binding
-//                .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-//                .thenAccept(unbound -> system.terminate()); // and shutdown when done
     }
 
     public static void main(String[] args) {
 
-        // 启动轨迹云服务
-        Config config = ConfigFactory.load().getConfig("App2");
+        if (args.length == 0) {
+            startupDemo(new String[] { "2551", "2552"}); //, "2552", "0", "2552"
+        } else {
+            startup(args);
+        }
+    }
 
-        //初始化配置信息
-        COMMON.read(config);
+    public static void startup(String[] ports) {
 
-        //启动http服务
-        AccessConfig accessConfig = new AccessConfig(COMMON.systemName, ConfigFactory.load().getConfig(config.getString("httpConfigFileName")),
-                config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("clusterAddr")), 6000L);
+            for (String port : ports) {
 
-        // boot up server using the route as defined below
-//        ActorSystem system = ActorSystem.createEVS("routes");
-        ActorSystem system = ActorSystem.create(config.getString("systemName"), config);
+                // 启动轨迹云服务
+                //Config config = ConfigFactory.load().getConfig("App2");
+                Config config = ConfigFactory
+                        .parseString("akka.remote.netty.tcp.port=" + port)
+                        .withFallback(ConfigFactory.load());
 
-        //system.actorOf(Props.create(EVSManager.class), "enterprises");
-        ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
-        system.actorOf(ClusterSingletonManager.props(
-                Props.create(EVSManager.class), PoisonPill.getInstance(), settings),
-                "enterprises");
+                //初始化配置信息
+                //COMMON.read(config);
 
-        // Is an actor on each node that keeps track of where current single master exists
-        // The ClusterSingletonProxy receives text from users and delegates to the current StatsService,the single master.
-        // It listens to cluster events to lookup the StatsService on the oldest node
-        ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
-        system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
+                //启动http服务
+    //            AccessConfig accessConfig = new AccessConfig(COMMON.systemName, ConfigFactory.load().getConfig(config.getString("httpConfigFileName")),
+    //                    config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("clusterAddr")), 6000L);
 
-        //方案一：HTTP MODLE：新的ActorSystem
-//            ActorSystem system1 = ActorSystem.createEVS(COMMON.systemName, accessConfig.config());
-//            new AccessServer(system1, accessConfig).run();
+                ActorSystem system = ActorSystem.create("NSkyEye", config);
 
-        //方案二：HTTP MODLE：同一个ActorSystem
-        new AccessServer(system, accessConfig).start();
+                ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
+                system.actorOf(ClusterSingletonManager.props(
+                        Props.create(EVSManager.class), PoisonPill.getInstance(), settings),
+                        "enterprises");
 
+                ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
+                system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
+
+
+                //HTTP MODLE：同一个ActorSystem
+                //new AccessServer(system, accessConfig).start();
+            }
+    }
+
+    public static void startupDemo(String[] ports) {
+        for (String port : ports) {
+            // Override the configuration of the port
+            Config config = ConfigFactory
+                    .parseString("akka.remote.netty.tcp.port=" + port)
+                    .withFallback(ConfigFactory.load());
+
+            ActorSystem system = ActorSystem.create(config.getString("systemName"), config);
+
+            ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
+            system.actorOf(ClusterSingletonManager.props(
+                    Props.create(StatsService.class), PoisonPill.getInstance(), settings),
+                    "statsService");
+
+            // Is an actor on each node that keeps track of where current single master exists
+            // The ClusterSingletonProxy receives text from users and delegates to the current StatsService,the single master.
+            // It listens to cluster events to lookup the StatsService on the oldest node
+            ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
+            system.actorOf(ClusterSingletonProxy.props("/user/statsService", proxySettings), "statsServiceProxy");
+        }
     }
 
 

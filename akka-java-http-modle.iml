@@ -13,7 +13,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.37" level="project" />
-    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster-sharding_2.12:2.5.3" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster-metrics_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.12.2" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-remote_2.12:2.5.3" level="project" />
@@ -21,6 +21,7 @@
     <orderEntry type="library" name="Maven: io.aeron:aeron-driver:1.2.5" level="project" />
     <orderEntry type="library" name="Maven: io.aeron:aeron-client:1.2.5" level="project" />
     <orderEntry type="library" name="Maven: org.agrona:agrona:0.9.5" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-cluster-sharding_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-distributed-data_2.12:2.5.3" level="project" />
     <orderEntry type="library" name="Maven: org.lmdbjava:lmdbjava:0.0.5" level="project" />
     <orderEntry type="library" name="Maven: com.github.jnr:jnr-ffi:2.1.2" level="project" />
