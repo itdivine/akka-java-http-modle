@@ -21,7 +21,6 @@ public class COMMON {
 	public static String systemName = "NSkyEye";
 	public static String clusterAddr = "akka.tcp://NSkyEye@127.0.0.1:2551";
 	public static String appConfigFileName = "App2";
-	public static String httpConfigFileName = "httpModel";
 
 	//Neo4j
 	public static int neo4j_maxSession = 200;
@@ -42,7 +41,6 @@ public class COMMON {
 		clusterAddr = prop.getString("clusterAddr");
 
 		appConfigFileName = prop.getString("appConfigFileName");
-		httpConfigFileName = prop.getString("httpConfigFileName");
 
 		neo4j_maxSession = Integer.parseInt(prop.getString("neo4j_maxSession"));
 		neo4j_userName = prop.getString("neo4j_userName");
