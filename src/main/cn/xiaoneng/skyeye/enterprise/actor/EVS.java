@@ -4,9 +4,9 @@ import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.cluster.sharding.ShardRegion;
+import akka.persistence.AbstractPersistentActor;
+import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
-import cn.xiaoneng.skyeye.access.remote.Message;
-import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.EVSCommandMessage;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
@@ -25,18 +25,24 @@ import java.io.Serializable;
  * Created by Administrator on 2016/7/25.
  */
 
-public class EVS extends AbstractActor {
+public class EVS extends AbstractPersistentActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
-    private String siteId;
+//    private String siteId;
     private EVSInfo evsInfo;
 
-    private ActorRef mediator;
+//    private ActorRef mediator;
 
 //    private ActorRef evsStore; //@test 注释存储
 
     public EVS() {}
+
+    @Override
+    public String persistenceId() {
+        log.info("persistenceId = " + this.getSelf().path().toStringWithoutAddress());
+        return this.getSelf().path().toStringWithoutAddress();
+    }
 
     @Override
     public void preStart() throws Exception {
@@ -82,12 +88,12 @@ public class EVS extends AbstractActor {
 
         try {
             ActorPath path = getSelf().path();
-            siteId = path.name();
+            String siteId = path.name();
             log.info("EVS init success, path = " + path);
 
 
             //订阅集群事件：可能不需要了，没有Actor会通过路径访问
-            mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+            ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
             mediator.tell(new DistributedPubSubMediator.Subscribe(siteId, ActorNames.NSkyEye, getSelf()), getSelf());
 
 //            evsStore = getContext().actorOf(Props.createEVS(EVSStoreActor.class), ActorNames.EVSSERVICE);
@@ -118,14 +124,19 @@ public class EVS extends AbstractActor {
         }
     }
 
-
-
-//    @Override
-//    public Receive createReceiveRecover() {
-//        return receiveBuilder()
+    /**
+     * actor崩溃后恢复策略
+     * 1.根据快照恢复最近状态信息
+     * 2.根据事件源恢复状态信息到崩溃前
+     */
+    @Override
+    public Receive createReceiveRecover() {
+        return receiveBuilder()
+                .match(SnapshotOffer.class, s -> this.evsInfo = (EVSInfo)s.snapshot())
 //                .match(Create.class, msg -> this.createEVS(((Create)msg).evsInfo))
-//                .build();
-//    }
+                .matchAny(msg -> log.info("EVS unhandled: " + msg))
+                .build();
+    }
 
     @Override
     public Receive createReceive() {
@@ -151,12 +162,15 @@ public class EVS extends AbstractActor {
         //注册企业
         ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
         actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
+
+        saveSnapshot(evsInfo);
     }
 
     public void updateEVS(EVSInfo evsInfo) {
         log.debug("updateEVS: " + evsInfo);
         this.evsInfo = evsInfo;
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+        saveSnapshot(evsInfo);
     }
 
     public void getEVS() {

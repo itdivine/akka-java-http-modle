@@ -10,6 +10,8 @@ import akka.cluster.sharding.ClusterSharding;
 import akka.cluster.sharding.ClusterShardingSettings;
 import akka.cluster.sharding.ShardRegion;
 import akka.japi.Option;
+import akka.persistence.AbstractPersistentActor;
+import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
@@ -28,19 +30,23 @@ import java.util.List;
  * <p>
  * Created by Administrator on 2016/7/25.
  */
-public class EVSManager extends AbstractActor {
+public class EVSManager extends AbstractPersistentActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
     //EVS分片
     private final ActorRef evsRegion;
 
-    private ActorRef mediator;
-
     protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
-    // siteId EVSActorRef 可以被优化掉，通过判断子EVS Acotr是否存在
+    // siteId EVSActorRef 可以被优化掉，通过判断子EVS Actor是否存在
     private static List<String> evsList = new ArrayList<String>();
+
+    @Override
+    public String persistenceId() {
+        log.info("persistenceId = " + this.getSelf().path().toStringWithoutAddress());
+        return this.getSelf().path().toStringWithoutAddress();
+    }
 
     static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
 
@@ -105,9 +111,17 @@ public class EVSManager extends AbstractActor {
 
         //中介者模式(Mediator)：用一个中介对象来分装一系列的对象交互。中介者使各对象不需要显示地相互引用，从而使其耦合松散
         //订阅集群事件
-        mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+        ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
 
+    }
+
+    @Override
+    public Receive createReceiveRecover() {
+        return receiveBuilder()
+                .match(SnapshotOffer.class, s -> this.evsList = (List<String>)s.snapshot())
+                .matchAny(msg -> log.info("EVS unhandled: " + msg))
+                .build();
     }
 
     @Override
@@ -128,6 +142,7 @@ public class EVSManager extends AbstractActor {
                 createEVS((EVS.Create)message);
             } else if (message instanceof EVS.Delete)  {
                 evsList.remove(((EVS.Delete) message).siteId);
+                saveSnapshot(evsList);
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -161,6 +176,7 @@ public class EVSManager extends AbstractActor {
 //                evsRegion.tell(new EVS.Create(evsInfo), getSender());
                 evsRegion.tell(message, getSender());
                 evsList.add(evsInfo.getSiteId());
+                saveSnapshot(evsList);
 
 //                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
 //                listProcessor.tell(isRegistMessage, getSelf());

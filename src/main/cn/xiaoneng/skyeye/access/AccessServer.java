@@ -58,20 +58,14 @@ public class AccessServer {
         }
     }
 
-    public static void startup(String[] ports) {
+    /*public static void startup(String[] ports) {
         for (String port : ports) {
             Config config = ConfigFactory
                     .parseString("akka.remote.netty.tcp.port=" + port)
                     .withFallback(ConfigFactory.load());
 
-            //初始化配置信息
-            COMMON.read(config);
-
-            //启动http服务
-            AccessConfig accessConfig = new AccessConfig(COMMON.systemName, config,
-                    config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("address")), 6000L);
-
             ActorSystem system = ActorSystem.create("NSkyEye", config);
+            //system.actorOf(Props.create(EVSManager.class),"enterprises");
 
             ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
             system.actorOf(ClusterSingletonManager.props(
@@ -84,10 +78,34 @@ public class AccessServer {
             ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
             system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
 
-            //HTTP MODLE：同一个ActorSystem
+            //启动http服务  同一个ActorSystem
+            COMMON.read(config);
+            AccessConfig accessConfig = new AccessConfig(COMMON.systemName, config,
+                    config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("address")), 6000L);
             accessConfig.port = Integer.parseInt(port) + 5529; //重置HTTP端口号
             new AccessServer(system, accessConfig).start();
 
+        }
+    }*/
+
+
+    public static void startup(String[] ports) {
+        for (String port : ports) {
+            // Override the configuration of the port
+            Config config = ConfigFactory.parseString(
+                    "akka.remote.netty.tcp.port=" + port).withFallback(
+                    ConfigFactory.load());
+
+            // Create an Akka system
+            ActorSystem system = ActorSystem.create("NSkyEye", config);
+            system.actorOf(Props.create(EVSManager.class),"enterprises");
+
+            //启动http服务  同一个ActorSystem
+            COMMON.read(config);
+            AccessConfig accessConfig = new AccessConfig(COMMON.systemName, config,
+                    config.getString("appUrl"), config.getInt("appPort"), AddressFromURIString.parse(config.getString("address")), 6000L);
+            accessConfig.port = Integer.parseInt(port) + 5529; //重置HTTP端口号
+            new AccessServer(system, accessConfig).start();
         }
     }
 }
