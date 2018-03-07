@@ -1,14 +1,10 @@
 package cn.xiaoneng.skyeye.access.remote;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import cn.xiaoneng.skyeye.access.AccessConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.Await;
@@ -26,7 +22,6 @@ public class MessageDispatcher {
     protected final static Logger log = LoggerFactory.getLogger(MessageDispatcher.class);
 
     private ActorSystem system;
-    private AccessConfig config;
     private ActorRef mediator; //总线
     private ActorRef clusterListener; //集群监听
     private Timeout timeout = new Timeout(Duration.create(5000, "millisecond"));
@@ -41,10 +36,9 @@ public class MessageDispatcher {
         return MessageDispatcherHolder.instance;
     }
 
-    public void init(ActorSystem system, AccessConfig config) {
+    public void init(ActorSystem system, Address masterAddress) {
         this.system = system;
-        this.config = config;
-        clusterListener = system.actorOf(Props.create(ClusterListener.class, config), "clusterListener");
+        clusterListener = system.actorOf(Props.create(ClusterListener.class, masterAddress), "clusterListener");
         mediator = DistributedPubSub.get(system).mediator();
     }
 

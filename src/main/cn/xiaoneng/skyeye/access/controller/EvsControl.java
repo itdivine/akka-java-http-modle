@@ -33,8 +33,8 @@ public class EvsControl extends BaseControl {
                                 route(
                                         get(() -> {
                                             //String actorPath = path + siteId + "/" + siteId;
-                                            log.debug("actorPath = " + siteId);
-                                            return complete(getEVS(siteId, new EVS.Get()));
+                                            //log.debug("actorPath = " + siteId);
+                                            return complete(getEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Get(siteId)));
                                         }),
 
                                         put(() -> entity(Unmarshaller.entityToString(), data -> {
@@ -52,7 +52,20 @@ public class EvsControl extends BaseControl {
                 );
     }
 
+    //发送给父节点
     private HttpResponse getEVS(String uri, EVS.Get cmd) {
+        Message message = new Message(uri, cmd);
+        Object obj = messageDispatcher.sendMsg(message);
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
+    }
+
+    //总线发送消息
+    /*private HttpResponse getEVS(String uri, EVS.Get cmd) {
         Message message = new Message(uri, cmd);
         Object obj = messageDispatcher.publishMsg(message);
         if(obj != null) {
@@ -61,7 +74,7 @@ public class EvsControl extends BaseControl {
         } else {
             return badResponse();
         }
-    }
+    }*/
 
     private HttpResponse updateEVS(String uri, EVS.Update cmd) {
         Message message = new Message(uri, cmd);

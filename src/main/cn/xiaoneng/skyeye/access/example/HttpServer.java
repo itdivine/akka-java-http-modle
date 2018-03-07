@@ -42,7 +42,7 @@ public class HttpServer extends AllDirectives {
     System.in.read(); // let it run until user presses return
 
     binding
-      .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
+      .thenCompose(ServerBinding::unbind) // trigger unbinding from the PORT
       .thenAccept(unbound -> system.terminate()); // and shutdown when done
   }
 

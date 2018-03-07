@@ -1,6 +1,7 @@
 package cn.xiaoneng.skyeye.access.remote;
 
 import akka.actor.AbstractActor;
+import akka.actor.Address;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.cluster.ClusterEvent.MemberEvent;
@@ -9,15 +10,15 @@ import akka.cluster.ClusterEvent.MemberUp;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import cn.xiaoneng.skyeye.access.AccessConfig;
+import cn.xiaoneng.skyeye.access.COMMON;
 
 public class ClusterListener extends AbstractActor {
     LoggingAdapter log = Logging.getLogger(getContext().system(), this);
     Cluster cluster = Cluster.get(getContext().system());
-    private AccessConfig config;
+    Address masterAddress;
 
-    public ClusterListener(AccessConfig config) {
-        this.config = config;
+    public ClusterListener(Address masterAddress) {
+        this.masterAddress = masterAddress;
     }
 
     @Override
@@ -27,8 +28,8 @@ public class ClusterListener extends AbstractActor {
                 MemberEvent.class, UnreachableMember.class);
 
         // 将节点加入到主节点
-        cluster.join(config.masterAddress);
-        log.debug("cluster has joined master[{}]", config.masterAddress);
+        cluster.join(masterAddress);
+        log.debug("cluster has joined master[{}]", masterAddress);
     }
 
     //re-subscribe when restart

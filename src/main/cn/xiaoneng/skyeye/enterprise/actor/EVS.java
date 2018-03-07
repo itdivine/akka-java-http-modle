@@ -64,7 +64,12 @@ public class EVS extends AbstractPersistentActor {
         }
     }
 
-    public static final class Get implements Serializable {}
+    public static final class Get implements Serializable {
+        public final String siteId;
+        public Get(String siteId) {
+            this.siteId = siteId;
+        }
+    }
     public static final class Delete implements Serializable {
         public final String siteId;
         public Delete(String siteId) {

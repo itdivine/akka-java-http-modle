@@ -11,6 +11,7 @@ import akka.cluster.sharding.ClusterShardingSettings;
 import akka.cluster.sharding.ShardRegion;
 import akka.japi.Option;
 import akka.persistence.AbstractPersistentActor;
+import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -52,18 +53,20 @@ public class EVSManager extends AbstractPersistentActor {
 
         @Override
         public String entityId(Object message) {
+
             if (message instanceof EVS.Create) {
-                System.out.println("entityId: " + ((EVS.Create) message).evsInfo.getSiteId());
                 return String.valueOf(((EVS.Create) message).evsInfo.getSiteId());
+
+            } else if (message instanceof EVS.Get) {
+                return ((EVS.Get) message).siteId;
             }
             return null;
         }
 
         @Override
         public Object entityMessage(Object message) {
-            if (message instanceof EVS.Create) {
+            if (message instanceof EVS.Create)
                 return message;
-            }
             else
                 return message;
         }
@@ -72,6 +75,9 @@ public class EVSManager extends AbstractPersistentActor {
         public String shardId(Object message) {
             if (message instanceof EVS.Create) {
                 String siteId = ((EVS.Create) message).evsInfo.getSiteId();
+                return getShardId(siteId);
+            } else if (message instanceof EVS.Get) {
+                String siteId = ((EVS.Get) message).siteId;
                 return getShardId(siteId);
             } else {
                 return null;
@@ -119,8 +125,9 @@ public class EVSManager extends AbstractPersistentActor {
     @Override
     public Receive createReceiveRecover() {
         return receiveBuilder()
-                .match(SnapshotOffer.class, s -> this.evsList = (List<String>)s.snapshot())
-                .matchAny(msg -> log.info("EVS unhandled: " + msg))
+//                .match(SnapshotOffer.class, s -> evsList = (List<String>)s.snapshot())
+                .match(RecoveryCompleted.class, msg -> log.info("EVSManager RecoveryCompleted: " + evsList))
+                .matchAny(msg -> log.info("EVSManager unhandled: " + msg))
                 .build();
     }
 
@@ -140,6 +147,8 @@ public class EVSManager extends AbstractPersistentActor {
                 list((EVSListGet)message);
             } else if (message instanceof EVS.Create)  {
                 createEVS((EVS.Create)message);
+            } else if (message instanceof EVS.Get)  {
+                evsRegion.tell(message, getSender());
             } else if (message instanceof EVS.Delete)  {
                 evsList.remove(((EVS.Delete) message).siteId);
                 saveSnapshot(evsList);
