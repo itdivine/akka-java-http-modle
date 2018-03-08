@@ -21,8 +21,8 @@ public class EvsManagerControl extends BaseControl {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerControl.class);
 
-//    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
-    public static final String enterprisesProxyPath = "/user/enterprises";
+    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
+//    public static final String enterprisesProxyPath = "/user/enterprises";
     private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {

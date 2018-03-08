@@ -31,7 +31,7 @@ import java.util.List;
  * <p>
  * Created by Administrator on 2016/7/25.
  */
-public class EVSManager extends AbstractPersistentActor {
+public class EVSManager extends AbstractActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
@@ -42,12 +42,6 @@ public class EVSManager extends AbstractPersistentActor {
 
     // siteId EVSActorRef 可以被优化掉，通过判断子EVS Actor是否存在
     private static List<String> evsList = new ArrayList<String>();
-
-    @Override
-    public String persistenceId() {
-        log.info("persistenceId = " + this.getSelf().path().toStringWithoutAddress());
-        return this.getSelf().path().toStringWithoutAddress();
-    }
 
     static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
 
@@ -123,15 +117,6 @@ public class EVSManager extends AbstractPersistentActor {
     }
 
     @Override
-    public Receive createReceiveRecover() {
-        return receiveBuilder()
-//                .match(SnapshotOffer.class, s -> evsList = (List<String>)s.snapshot())
-                .match(RecoveryCompleted.class, msg -> log.info("EVSManager RecoveryCompleted: " + evsList))
-                .matchAny(msg -> log.info("EVSManager unhandled: " + msg))
-                .build();
-    }
-
-    @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .matchAny(msg -> onReceive(msg))
@@ -151,7 +136,6 @@ public class EVSManager extends AbstractPersistentActor {
                 evsRegion.tell(message, getSender());
             } else if (message instanceof EVS.Delete)  {
                 evsList.remove(((EVS.Delete) message).siteId);
-                saveSnapshot(evsList);
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -185,7 +169,6 @@ public class EVSManager extends AbstractPersistentActor {
 //                evsRegion.tell(new EVS.Create(evsInfo), getSender());
                 evsRegion.tell(message, getSender());
                 evsList.add(evsInfo.getSiteId());
-                saveSnapshot(evsList);
 
 //                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
 //                listProcessor.tell(isRegistMessage, getSelf());

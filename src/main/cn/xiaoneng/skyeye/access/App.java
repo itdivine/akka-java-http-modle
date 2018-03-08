@@ -2,6 +2,10 @@ package cn.xiaoneng.skyeye.access;
 
 import akka.NotUsed;
 import akka.actor.*;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import akka.cluster.singleton.ClusterSingletonProxy;
+import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -86,7 +90,8 @@ public class App {
 
         ActorSystem system = ActorSystem.create(COMMON.systemName, config);
 
-        system.actorOf(Props.create(EVSManager.class),"enterprises");
+        //system.actorOf(Props.create(EVSManager.class),"enterprises");
+        createSingletionEVSManager(system);
 
         //启动http服务
         AppConfig appConfig = new AppConfig(COMMON.systemName,
@@ -94,5 +99,15 @@ public class App {
 
         new App(system).start(appConfig);
 
+    }
+
+    private static void createSingletionEVSManager(ActorSystem system) {
+
+        ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system);
+        system.actorOf(ClusterSingletonManager.props(
+                Props.create(EVSManager.class), PoisonPill.getInstance(), settings),"enterprises");
+
+        ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
+        system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
     }
 }

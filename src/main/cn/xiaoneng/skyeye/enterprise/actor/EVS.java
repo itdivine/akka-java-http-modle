@@ -5,6 +5,7 @@ import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.cluster.sharding.ShardRegion;
 import akka.persistence.AbstractPersistentActor;
+import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -139,6 +140,7 @@ public class EVS extends AbstractPersistentActor {
         return receiveBuilder()
                 .match(SnapshotOffer.class, s -> this.evsInfo = (EVSInfo)s.snapshot())
 //                .match(Create.class, msg -> this.createEVS(((Create)msg).evsInfo))
+                .match(RecoveryCompleted.class, msg -> log.info("EVS RecoveryCompleted: " + evsInfo))
                 .matchAny(msg -> log.info("EVS unhandled: " + msg))
                 .build();
     }
@@ -179,7 +181,6 @@ public class EVS extends AbstractPersistentActor {
     }
 
     public void getEVS() {
-        log.debug("getEVS: " + evsInfo.getSiteId());
         getSender().tell(new EVS.Result(200, evsInfo), getSelf());
     }
 

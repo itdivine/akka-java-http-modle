@@ -3,6 +3,7 @@ package cn.xiaoneng.skyeye.access.remote;
 import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.cluster.sharding.ClusterSharding;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import org.slf4j.Logger;
@@ -79,6 +80,31 @@ public class MessageDispatcher {
             ActorSelection actor = system.actorSelection(message.getActorPath());
             Future<Object> futureResult = Patterns.ask(actor, message.getBody(), timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
+        } catch (Exception e) {
+            log.error("Exception: " + e.getMessage());
+        }
+        return receiveMessage;
+    }
+
+    /**
+     * 通过ShardRegion给分片Actor发送消息
+     *
+     * @param message 消息内容
+     * @param typeName Actor类型名
+     * @return
+     */
+    public Object sendShardMsg(Message message, String typeName) {
+        Object receiveMessage = null;
+        try {
+            ActorRef shardRegion = ClusterSharding.get(system).shardRegion(typeName);
+            Future<Object> futureResult = Patterns.ask(shardRegion, message.getBody(), timeout);
+            receiveMessage = Await.result(futureResult, timeout.duration());
+
+//            shardRegion.tell(message, getSender());
+//
+//            ActorSelection actor = system.actorSelection(message.getActorPath());
+//            Future<Object> futureResult = Patterns.ask(actor, message.getBody(), timeout);
+//            receiveMessage = Await.result(futureResult, timeout.duration());
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());
         }

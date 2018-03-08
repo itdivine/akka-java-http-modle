@@ -1,5 +1,6 @@
 package cn.xiaoneng.skyeye.access.controller;
 
+import akka.cluster.sharding.ClusterSharding;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
@@ -52,8 +53,21 @@ public class EvsControl extends BaseControl {
                 );
     }
 
-    //发送给父节点
+
+    //使用ShardRegion发送给Actor
     private HttpResponse getEVS(String uri, EVS.Get cmd) {
+        Message message = new Message(uri, cmd);
+        Object obj = messageDispatcher.sendShardMsg(message, "EVS");
+        if(obj != null) {
+            EVS.Result result = (EVS.Result)obj;
+            return response(result.code, result.evsInfo==null ? "" : JSON.toJSONString(result.evsInfo));
+        } else {
+            return badResponse();
+        }
+    }
+
+    //通过路径发送给父节点
+    /*private HttpResponse getEVS(String uri, EVS.Get cmd) {
         Message message = new Message(uri, cmd);
         Object obj = messageDispatcher.sendMsg(message);
         if(obj != null) {
@@ -62,9 +76,9 @@ public class EvsControl extends BaseControl {
         } else {
             return badResponse();
         }
-    }
+    }*/
 
-    //总线发送消息
+    //总线发送消息给EVS
     /*private HttpResponse getEVS(String uri, EVS.Get cmd) {
         Message message = new Message(uri, cmd);
         Object obj = messageDispatcher.publishMsg(message);
