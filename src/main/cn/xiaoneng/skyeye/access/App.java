@@ -2,6 +2,7 @@ package cn.xiaoneng.skyeye.access;
 
 import akka.NotUsed;
 import akka.actor.*;
+import akka.cluster.seed.ZookeeperClusterSeed;
 import akka.cluster.singleton.ClusterSingletonManager;
 import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.cluster.singleton.ClusterSingletonProxy;
@@ -89,6 +90,7 @@ public class App {
         COMMON.read(config);
 
         ActorSystem system = ActorSystem.create(COMMON.systemName, config);
+        new ZookeeperClusterSeed((ExtendedActorSystem) system).join();
 
         //system.actorOf(Props.create(EVSManager.class),"enterprises");
         createSingletionEVSManager(system);

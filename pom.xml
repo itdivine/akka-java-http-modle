@@ -20,6 +20,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.sclasen</groupId>
+            <artifactId>akka-zk-cluster-seed_2.12</artifactId>
+            <version>0.1.10</version>
+        </dependency>
+        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.37</version>
