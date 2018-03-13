@@ -14,6 +14,7 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import cn.xiaoneng.skyeye.access.code.HttpCodeRegister;
 import cn.xiaoneng.skyeye.access.controller.Routers;
 import cn.xiaoneng.skyeye.access.remote.MessageDispatcher;
 import cn.xiaoneng.skyeye.enterprise.actor.EVSManager;
@@ -90,10 +91,11 @@ public class App {
         COMMON.read(config);
 
         ActorSystem system = ActorSystem.create(COMMON.systemName, config);
+        HttpCodeRegister.addCustomCode(system);
         new ZookeeperClusterSeed((ExtendedActorSystem) system).join();
 
-        //system.actorOf(Props.create(EVSManager.class),"enterprises");
-        createSingletionEVSManager(system);
+        system.actorOf(Props.create(EVSManager.class),"enterprises");
+//        createSingletionEVSManager(system);
 
         //启动http服务
         AppConfig appConfig = new AppConfig(COMMON.systemName,

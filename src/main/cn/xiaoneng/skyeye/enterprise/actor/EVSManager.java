@@ -41,7 +41,7 @@ public class EVSManager extends AbstractActor {
     protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
     // siteId EVSActorRef 可以被优化掉，通过判断子EVS Actor是否存在
-    private static List<String> evsList = new ArrayList<String>();
+//    private static List<String> evsList = new ArrayList<String>();
 
     static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
 
@@ -89,7 +89,7 @@ public class EVSManager extends AbstractActor {
     public EVSManager() {
         //创建Actor分片
         ActorSystem system = getContext().getSystem();
-        //Option<String> roleOption = Option.none();
+        Option<String> roleOption = Option.none();
         ClusterShardingSettings settings = ClusterShardingSettings.create(system);
         evsRegion = ClusterSharding.get(system)
                 .start(
@@ -135,7 +135,7 @@ public class EVSManager extends AbstractActor {
             } else if (message instanceof EVS.Get)  {
                 evsRegion.tell(message, getSender());
             } else if (message instanceof EVS.Delete)  {
-                evsList.remove(((EVS.Delete) message).siteId);
+//                evsList.remove(((EVS.Delete) message).siteId);
             } else {
                 getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
             }
@@ -157,7 +157,9 @@ public class EVSManager extends AbstractActor {
                 return;
             }
 
-            if (evsList.contains(evsInfo.getSiteId())) {
+            evsRegion.tell(message, getSender());
+
+            /*if (evsList.contains(evsInfo.getSiteId())) {
                 //企业已经被创建，返回201
                 getSender().tell(new EVS.Result(201, null), getSelf());
 
@@ -172,7 +174,7 @@ public class EVSManager extends AbstractActor {
 
 //                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
 //                listProcessor.tell(isRegistMessage, getSelf());
-            }
+            }*/
 
             //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
 

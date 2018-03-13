@@ -3,6 +3,7 @@ package cn.xiaoneng.skyeye.access.controller;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
+import akka.http.javadsl.model.StatusCodes;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -21,8 +22,8 @@ public class EvsManagerControl extends BaseControl {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerControl.class);
 
-    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
-//    public static final String enterprisesProxyPath = "/user/enterprises";
+//    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
+    public static final String enterprisesProxyPath = "/user/enterprises";
     private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {
@@ -64,15 +65,15 @@ public class EvsManagerControl extends BaseControl {
 //        Object object = messageDispatcher.publishMsg(message);
         Object object = messageDispatcher.sendMsg(message);
 
-        return response(object);
+        return response(StatusCodes.METHOD_NOT_ALLOWED, null);
     }
 
 
     private HttpResponse createEVS(String uri, EVS.Create cmd) {
 
         Message message = new Message(uri, cmd);
-//        EVS.Result result = (EVS.Result)messageDispatcher.publishMsg(message);
         EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
+//        EVS.Result result = (EVS.Result)messageDispatcher.sendShardMsg(message, "EVS");
 
         return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
     }

@@ -4,9 +4,12 @@ import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.cluster.sharding.ShardRegion;
+import akka.http.javadsl.model.StatusCode;
+import akka.http.javadsl.model.StatusCodes;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
+import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.enterprise.message.EVSCommandMessage;
@@ -79,9 +82,9 @@ public class EVS extends AbstractPersistentActor {
     }
 
     public static final class Result implements Serializable {
-        public final int code;
+        public final StatusCode code;
         public final EVSInfo evsInfo;
-        public Result(int code, EVSInfo evsInfo) {
+        public Result(StatusCode code, EVSInfo evsInfo) {
             this.code = code;
             this.evsInfo = evsInfo;
         }
@@ -163,25 +166,36 @@ public class EVS extends AbstractPersistentActor {
 
     public void createEVS(EVSInfo evsInfo) {
         log.debug("createEVS: " + evsInfo);
-        this.evsInfo = evsInfo;
-        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+        if(this.evsInfo != null) {
+            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+            return;
+        } else {
+            this.evsInfo = evsInfo;
+            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
 
-        //注册企业
-        ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
-        actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
+            //注册企业
+            ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
+            actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
 
-        saveSnapshot(evsInfo);
+            saveSnapshot(evsInfo);
+        }
     }
 
     public void updateEVS(EVSInfo evsInfo) {
         log.debug("updateEVS: " + evsInfo);
         this.evsInfo = evsInfo;
-        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+        getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
         saveSnapshot(evsInfo);
     }
 
     public void getEVS() {
-        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+        if(evsInfo == null) {
+            getSender().tell(new EVS.Result(CustomStateCode.EVS_NOT_EXSIT, evsInfo), getSelf());
+            getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
+        }
+        else {
+            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+        }
     }
 
     public void deleteEVS(Delete msg) {
@@ -192,7 +206,7 @@ public class EVS extends AbstractPersistentActor {
         //2.停止EVS Actor
         getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         //3.返回结果
-        getSender().tell(new EVS.Result(200, evsInfo), getSelf());
+        getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
     }
 
     private void processHTTPCommand(String message) {

@@ -1,10 +1,11 @@
 package cn.xiaoneng.skyeye.access.controller;
 
-import akka.cluster.sharding.ClusterSharding;
+import akka.http.javadsl.model.ContentTypes;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
+import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -60,7 +61,7 @@ public class EvsControl extends BaseControl {
         Object obj = messageDispatcher.sendShardMsg(message, "EVS");
         if(obj != null) {
             EVS.Result result = (EVS.Result)obj;
-            return response(result.code, result.evsInfo==null ? "" : JSON.toJSONString(result.evsInfo));
+            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
         } else {
             return badResponse();
         }
