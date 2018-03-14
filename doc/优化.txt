@@ -1,0 +1,1 @@
+1.COMMON.java合并到AppConfig.java

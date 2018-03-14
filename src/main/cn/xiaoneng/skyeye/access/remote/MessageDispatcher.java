@@ -24,7 +24,6 @@ public class MessageDispatcher {
 
     private ActorSystem system;
     private ActorRef mediator; //总线
-    private ActorRef clusterListener; //集群监听
     private Timeout timeout = new Timeout(Duration.create(5000, "millisecond"));
 
     private static class MessageDispatcherHolder {
@@ -37,40 +36,31 @@ public class MessageDispatcher {
         return MessageDispatcherHolder.instance;
     }
 
-    public void init(ActorSystem system, Address masterAddress) {
+    public void init(ActorSystem system) {
         this.system = system;
-        clusterListener = system.actorOf(Props.create(ClusterListener.class, masterAddress), "clusterListener");
+        system.actorOf(Props.create(ClusterListener.class), "clusterListener");//集群监听
         mediator = DistributedPubSub.get(system).mediator();
     }
 
-
-
     /**
      * 通过总线发布消息
-     *
      * @param message 消息内容
      * @return
      */
     public Object publishMsg(Message message) {
-
         Object receiveMessage = null;
-
         try {
-            // 发送消息
             DistributedPubSubMediator.Publish publishMsg = new DistributedPubSubMediator.Publish(message.getActorPath(), message.getBody(), true);
             Future<Object> futureResult = Patterns.ask(mediator, publishMsg, timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
-
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());
         }
-
         return receiveMessage;
     }
 
     /**
      * ActorSelect发送消息
-     *
      * @param message 消息内容
      * @return
      */
@@ -88,7 +78,6 @@ public class MessageDispatcher {
 
     /**
      * 通过ShardRegion给分片Actor发送消息
-     *
      * @param message 消息内容
      * @param typeName Actor类型名
      * @return
@@ -99,12 +88,6 @@ public class MessageDispatcher {
             ActorRef shardRegion = ClusterSharding.get(system).shardRegion(typeName);
             Future<Object> futureResult = Patterns.ask(shardRegion, message.getBody(), timeout);
             receiveMessage = Await.result(futureResult, timeout.duration());
-
-//            shardRegion.tell(message, getSender());
-//
-//            ActorSelection actor = system.actorSelection(message.getActorPath());
-//            Future<Object> futureResult = Patterns.ask(actor, message.getBody(), timeout);
-//            receiveMessage = Await.result(futureResult, timeout.duration());
         } catch (Exception e) {
             log.error("Exception: " + e.getMessage());
         }

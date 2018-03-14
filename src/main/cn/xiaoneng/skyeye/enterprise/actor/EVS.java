@@ -1,8 +1,6 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.*;
-import akka.cluster.pubsub.DistributedPubSub;
-import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.cluster.sharding.ShardRegion;
 import akka.http.javadsl.model.StatusCode;
 import akka.http.javadsl.model.StatusCodes;
@@ -10,18 +8,12 @@ import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.code.CustomStateCode;
-import cn.xiaoneng.skyeye.access.controller.EvsManagerControl;
+import cn.xiaoneng.skyeye.access.controller.EvsManagerController;
+import cn.xiaoneng.skyeye.base.BaseMessage;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
-import cn.xiaoneng.skyeye.enterprise.message.EVSCommandMessage;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
-import cn.xiaoneng.skyeye.util.*;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-
 
 
 /**
@@ -33,7 +25,6 @@ public class EVS extends AbstractPersistentActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
-//    private String siteId;
     private EVSInfo evsInfo;
 
 //    private ActorRef mediator;
@@ -54,34 +45,49 @@ public class EVS extends AbstractPersistentActor {
         init();
     }
 
-    public static final class Create implements Serializable {
+    public static final class Create extends BaseMessage {
         public final EVSInfo evsInfo;
         public Create(EVSInfo evsInfo) {
             this.evsInfo = evsInfo;
         }
     }
 
-    public static final class Update implements Serializable {
+    public static final class Update extends BaseMessage {
         public final EVSInfo evsInfo;
         public Update(EVSInfo evsInfo) {
             this.evsInfo = evsInfo;
         }
     }
 
-    public static final class Get implements Serializable {
+    public static final class Get extends BaseMessage {
         public final String siteId;
         public Get(String siteId) {
             this.siteId = siteId;
         }
     }
-    public static final class Delete implements Serializable {
+    public static final class Delete extends BaseMessage {
         public final String siteId;
         public Delete(String siteId) {
             this.siteId = siteId;
         }
     }
+    /**
+     * 查询导航空间列表
+     */
+    public static final class EVSListGet extends BaseMessage {
+        public final int page;
+        public final int per_page;
+        public EVSListGet(int page, int per_page) {
+            this.page = page;
+            this.per_page = per_page;
+        }
+        @Override
+        public String toString() {
+            return "EVSListGet{" + "page=" + page + ", per_page=" + per_page + '}';
+        }
+    }
 
-    public static final class Result implements Serializable {
+    public static final class Result extends BaseMessage {
         public final StatusCode code;
         public final EVSInfo evsInfo;
         public Result(StatusCode code, EVSInfo evsInfo) {
@@ -97,13 +103,15 @@ public class EVS extends AbstractPersistentActor {
 
         try {
             ActorPath path = getSelf().path();
-            String siteId = path.name();
             log.info("EVS init success, path = " + path);
+
+//            String siteId = path.name();
+
 
 
             //订阅集群事件：可能不需要了，没有Actor会通过路径访问
-            ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
-            mediator.tell(new DistributedPubSubMediator.Subscribe(siteId, ActorNames.NSkyEye, getSelf()), getSelf());
+//            ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+//            mediator.tell(new DistributedPubSubMediator.Subscribe(siteId, ActorNames.NSkyEye, getSelf()), getSelf());
 
 //            evsStore = getContext().actorOf(Props.createEVS(EVSStoreActor.class), ActorNames.EVSSERVICE);
 //            evsStore.tell(new EVSCommandMessage(Operation.CREATE, 10, evsInfo), getSelf());
@@ -142,7 +150,8 @@ public class EVS extends AbstractPersistentActor {
     public Receive createReceiveRecover() {
         return receiveBuilder()
                 .match(SnapshotOffer.class, s -> this.evsInfo = (EVSInfo)s.snapshot())
-//                .match(Create.class, msg -> this.createEVS(((Create)msg).evsInfo))
+                //事件源恢复
+                //.match(Create.class, msg -> this.createEVS(((Create)msg).evsInfo))
                 .match(RecoveryCompleted.class, msg -> log.info("EVS RecoveryCompleted: " + evsInfo))
                 .matchAny(msg -> log.info("EVS unhandled: " + msg))
                 .build();
@@ -158,8 +167,6 @@ public class EVS extends AbstractPersistentActor {
                 .match(Update.class, msg -> this.updateEVS(msg.evsInfo))
                 .match(Get.class, msg -> getEVS())
                 .match(Delete.class, msg -> deleteEVS(msg))
-                .match(String.class, msg -> processHTTPCommand(msg))
-                .match(CommandMessage.class, msg -> processCommandMessage(msg))
                 .matchAny(msg -> log.info("EVS matchAny: " + msg))
                 .build();
     }
@@ -201,87 +208,13 @@ public class EVS extends AbstractPersistentActor {
     public void deleteEVS(Delete msg) {
         log.debug("deleteEVS: " + evsInfo.getSiteId());
         //1.通知EvsManager删除缓存列表中的siteId
-        ActorSelection actor = getContext().getSystem().actorSelection(EvsManagerControl.enterprisesProxyPath);
+        ActorSelection actor = getContext().getSystem().actorSelection(EvsManagerController.enterprisesProxyPath);
         actor.tell(msg, getSelf());
         //2.停止EVS Actor
         getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         //3.返回结果
         getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
     }
-
-    private void processHTTPCommand(String message) {
-
-        try {
-            JSONObject messageJson = JSON.parseObject(message);
-            String method = messageJson.getString("method");
-            JSONObject params = messageJson.getJSONObject("params");
-
-
-            if (Statics.isNullOrEmpty(method)) {
-                log.info("method is null, message= " + message);
-                getSender().tell("{\"status\":415,\"body\":\"\"}", getSelf());
-                return;
-            }
-
-            switch (method) {
-
-                // 查询企业信息
-                case HTTPCommand.GET:
-                    getSender().tell("{\"status\":200,\"body\":" + evsInfo.toJSONString() + "}", getSelf());
-                    break;
-
-                case HTTPCommand.PUT:
-                case HTTPCommand.PATCH:
-
-                    JSONObject bodyJson = messageJson.getJSONObject("body");
-                    EVSInfo info = JSON.parseObject(bodyJson.toString(), EVSInfo.class);
-                    evsInfo.update(info);
-                    getSender().tell("{\"status\":200,\"body\":" + evsInfo.toJSONString() + "}", getSelf());
-
-//                    EVSCommandMessage updateEVS = new EVSCommandMessage(Operation.UPDATE, 10, evsInfo);
-//                    evsStore.tell(updateEVS, getSelf());
-
-                    //发布企业信息
-//                    EvsInfoChangedEvent event = new EvsInfoChangedEvent(evsInfo);
-//                    this.getContext().system().eventStream().publish(event);
-
-                    break;
-
-                case HTTPCommand.DELETE:
-                    //DB中删除
-                    EVSCommandMessage deleteEVS = new EVSCommandMessage(Operation.DELETE, 10, evsInfo);
-                    //evsStore.tell(deleteEVS, getSelf());
-
-                    //父actor停止
-                    getContext().parent().tell(new CommandMessage(Operation.DELETE, 10, null, getSender()), getSelf());
-
-                    break;
-
-                case HTTPCommand.POST:
-                    break;
-
-                default:
-
-            }
-
-        } catch (Exception e) {
-            log.error("Exception " + e.getMessage() + "  message= " + message);
-        }
-    }
-
-    private void processCommandMessage(CommandMessage message) {
-
-        try {
-            if(message.getOperation().equals(Operation.GET)) {
-                DocumentMessage documentMessage = new DocumentMessage(null, 10, evsInfo.toJSONString(), ((CommandMessage)message).getMsgId());
-                getSender().tell(documentMessage, getSelf());
-            }
-
-        } catch (Exception e) {
-            log.error("Exception " + e.getMessage() + "  message= " + message);
-        }
-    }
-
 }
 
 

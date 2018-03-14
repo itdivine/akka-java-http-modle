@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Created by XY on 2017/8/30.
  */
-public class BaseControl extends AllDirectives {
+public class BaseController extends AllDirectives {
 
     public MessageDispatcher messageDispatcher = MessageDispatcher.getInstance();
 

@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.access.example.routes;
+package cn.xiaoneng.skyeye.access.controller;
 
 import akka.http.javadsl.server.Route;
 
@@ -8,7 +8,7 @@ import static akka.http.javadsl.server.Directives.pathEndOrSingleSlash;
 /**
  * Routes can be defined in separated classes like shown in here
  */
-public class BaseRoutes {
+public class RootController {
 
   /**
    * This route is the one that listens to the top level '/'. It can be a static method

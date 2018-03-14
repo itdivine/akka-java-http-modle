@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.access;
+package cn.xiaoneng.skyeye.util;
 
 import akka.actor.Address;
 import akka.actor.AddressFromURIString;

@@ -1,7 +1,7 @@
 package cn.xiaoneng.skyeye.enterprise.message;
 
 import akka.actor.ActorRef;
-import cn.xiaoneng.skyeye.util.BaseMessage;
+import cn.xiaoneng.skyeye.base.BaseMessage;
 
 import java.io.Serializable;
 
@@ -30,7 +30,6 @@ public class IsRegistMessage extends BaseMessage implements Serializable {
     }
 
     public IsRegistMessage(boolean isRegist, String path, ActorRef evsRef, long timeToLive) {
-        super(null, null, timeToLive);
         this.evsRef = evsRef;
         this.path = path;
         this.isRegist = isRegist;

@@ -6,21 +6,21 @@ import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.javadsl.model.StatusCodes;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
+import cn.xiaoneng.skyeye.enterprise.actor.EVS.*;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 
 /**
  * Created by XuYang on 2017/8/27.
  * 1.查询企业列表
  * 2.创建企业
  */
-public class EvsManagerControl extends BaseControl {
+public class EvsManagerController extends BaseController {
 
-    protected final static Logger log = LoggerFactory.getLogger(EvsManagerControl.class);
+    protected final static Logger log = LoggerFactory.getLogger(EvsManagerController.class);
 
 //    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
     public static final String enterprisesProxyPath = "/user/enterprises";

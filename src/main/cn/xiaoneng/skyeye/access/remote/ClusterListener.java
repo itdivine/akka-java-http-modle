@@ -10,29 +10,20 @@ import akka.cluster.ClusterEvent.MemberUp;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import cn.xiaoneng.skyeye.access.COMMON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClusterListener extends AbstractActor {
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-    Cluster cluster = Cluster.get(getContext().system());
-    Address masterAddress;
 
-    public ClusterListener(Address masterAddress) {
-        this.masterAddress = masterAddress;
-    }
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
+    private Cluster cluster = Cluster.get(getContext().system());
 
     @Override
     public void preStart() {
-        // 使用cluster将此actor注册以用来监听节点
         cluster.subscribe(self(), ClusterEvent.initialStateAsEvents(),
                 MemberEvent.class, UnreachableMember.class);
-
-        // 将节点加入到主节点
-        cluster.join(masterAddress);
-        log.debug("cluster has joined master[{}]", masterAddress);
     }
 
-    //re-subscribe when restart
     @Override
     public void postStop() {
         cluster.unsubscribe(self());

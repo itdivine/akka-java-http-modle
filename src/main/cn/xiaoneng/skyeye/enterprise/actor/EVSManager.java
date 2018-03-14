@@ -13,16 +13,15 @@ import akka.japi.Option;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
-import cn.xiaoneng.skyeye.access.Message.EVSProtocol.EVSListGet;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+import cn.xiaoneng.skyeye.enterprise.actor.EVS.*;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
-import cn.xiaoneng.skyeye.temple.ListMessage;
-import cn.xiaoneng.skyeye.temple.ListProcessor;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import cn.xiaoneng.skyeye.util.Statics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class EVSManager extends AbstractActor {
     //EVS分片
     private final ActorRef evsRegion;
 
-    protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
+//    protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
 
     // siteId EVSActorRef 可以被优化掉，通过判断子EVS Actor是否存在
 //    private static List<String> evsList = new ArrayList<String>();
@@ -194,8 +193,8 @@ public class EVSManager extends AbstractActor {
         try {
             int page = message.page;
             int per_page = message.per_page;
-            ListMessage listMessage = new ListMessage(page, per_page, 10);
-            listProcessor.forward(listMessage, getContext());
+//            ListMessage listMessage = new ListMessage(page, per_page, 10);
+//            listProcessor.forward(listMessage, getContext());
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());

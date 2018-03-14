@@ -1,11 +1,9 @@
 package cn.xiaoneng.skyeye.access.controller;
 
-import akka.http.javadsl.model.ContentTypes;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
-import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -21,9 +19,9 @@ import org.slf4j.LoggerFactory;
  * 2.修改企业信息
  * 3.删除企业信息
  */
-public class EvsControl extends BaseControl {
+public class EvsController extends BaseController {
 
-    protected final static Logger log = LoggerFactory.getLogger(EvsControl.class);
+    protected final static Logger log = LoggerFactory.getLogger(EvsController.class);
 
     private final String path = "/system/sharding/EVS/";
 
@@ -36,7 +34,7 @@ public class EvsControl extends BaseControl {
                                         get(() -> {
                                             //String actorPath = path + siteId + "/" + siteId;
                                             //log.debug("actorPath = " + siteId);
-                                            return complete(getEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Get(siteId)));
+                                            return complete(getEVS(EvsManagerController.enterprisesProxyPath, new EVS.Get(siteId)));
                                         }),
 
                                         put(() -> entity(Unmarshaller.entityToString(), data -> {
@@ -46,7 +44,7 @@ public class EvsControl extends BaseControl {
 
                                         delete(() -> {
                                             return complete(deleteEVS(siteId, new EVS.Delete(siteId)));
-//                                            return complete(deleteEVS(EvsManagerControl.enterprisesProxyPath, new EVS.Delete(siteId)));
+//                                            return complete(deleteEVS(EvsManagerController.enterprisesProxyPath, new EVS.Delete(siteId)));
                                         })
 
                                         .orElse(complete("请求资源不存在"))
