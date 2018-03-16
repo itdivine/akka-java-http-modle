@@ -15,6 +15,8 @@ import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
+
 
 /**
  * 企业虚拟空间 - 企业单例
@@ -39,62 +41,11 @@ public class EVS extends AbstractPersistentActor {
         return this.getSelf().path().toStringWithoutAddress();
     }
 
-    @Override
-    public void preStart() throws Exception {
-        super.preStart();
-        init();
-    }
-
-    public static final class Create extends BaseMessage {
-        public final EVSInfo evsInfo;
-        public Create(EVSInfo evsInfo) {
-            this.evsInfo = evsInfo;
-        }
-    }
-
-    public static final class Update extends BaseMessage {
-        public final EVSInfo evsInfo;
-        public Update(EVSInfo evsInfo) {
-            this.evsInfo = evsInfo;
-        }
-    }
-
-    public static final class Get extends BaseMessage {
-        public final String siteId;
-        public Get(String siteId) {
-            this.siteId = siteId;
-        }
-    }
-    public static final class Delete extends BaseMessage {
-        public final String siteId;
-        public Delete(String siteId) {
-            this.siteId = siteId;
-        }
-    }
-    /**
-     * 查询导航空间列表
-     */
-    public static final class EVSListGet extends BaseMessage {
-        public final int page;
-        public final int per_page;
-        public EVSListGet(int page, int per_page) {
-            this.page = page;
-            this.per_page = per_page;
-        }
-        @Override
-        public String toString() {
-            return "EVSListGet{" + "page=" + page + ", per_page=" + per_page + '}';
-        }
-    }
-
-    public static final class Result extends BaseMessage {
-        public final StatusCode code;
-        public final EVSInfo evsInfo;
-        public Result(StatusCode code, EVSInfo evsInfo) {
-            this.code = code;
-            this.evsInfo = evsInfo;
-        }
-    }
+//    @Override
+//    public void preStart() throws Exception {
+//        super.preStart();
+//        init();
+//    }
 
     /**
      * 初始化主体空间管理器、导航空间管理器、跟踪记录管理器、采集器
@@ -174,34 +125,36 @@ public class EVS extends AbstractPersistentActor {
     public void createEVS(EVSInfo evsInfo) {
         log.debug("createEVS: " + evsInfo);
         if(this.evsInfo != null) {
-            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+            getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
             return;
         } else {
             this.evsInfo = evsInfo;
-            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+            getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
 
             //注册企业
-            ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
-            actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
+//            ActorSelection actor = getContext().getSystem().actorSelection("/user/enterprises/singleton/listProcessor");
+//            actor.tell(new IsRegistMessage(true, getSelf().path().toString(), getSelf(), 10), getSelf());
 
             saveSnapshot(evsInfo);
+            log.info("saveSnapshot: " + evsInfo);
         }
     }
 
     public void updateEVS(EVSInfo evsInfo) {
         log.debug("updateEVS: " + evsInfo);
         this.evsInfo = evsInfo;
-        getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+        getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
         saveSnapshot(evsInfo);
+        log.info("saveSnapshot: " + evsInfo);
     }
 
     public void getEVS() {
         if(evsInfo == null) {
-            getSender().tell(new EVS.Result(CustomStateCode.EVS_NOT_EXSIT, evsInfo), getSelf());
+            getSender().tell(new Result(CustomStateCode.EVS_NOT_EXSIT, evsInfo), getSelf());
             getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         }
         else {
-            getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+            getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
         }
     }
 
@@ -213,7 +166,7 @@ public class EVS extends AbstractPersistentActor {
         //2.停止EVS Actor
         getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         //3.返回结果
-        getSender().tell(new EVS.Result(StatusCodes.OK, evsInfo), getSelf());
+        getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
     }
 }
 

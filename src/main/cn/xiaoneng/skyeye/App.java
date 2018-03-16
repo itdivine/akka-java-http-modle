@@ -3,6 +3,8 @@ package cn.xiaoneng.skyeye;
 import akka.NotUsed;
 import akka.actor.*;
 import akka.cluster.seed.ZookeeperClusterSeed;
+import akka.cluster.sharding.ClusterSharding;
+import akka.cluster.sharding.ClusterShardingSettings;
 import akka.cluster.singleton.ClusterSingletonManager;
 import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.cluster.singleton.ClusterSingletonProxy;
@@ -12,8 +14,11 @@ import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
+import akka.japi.Option;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import cn.xiaoneng.skyeye.enterprise.actor.EVS;
+import cn.xiaoneng.skyeye.enterprise.bean.EVSShard;
 import cn.xiaoneng.skyeye.util.COMMON;
 import cn.xiaoneng.skyeye.access.code.HttpCodeRegister;
 import cn.xiaoneng.skyeye.access.controller.Routers;
@@ -65,8 +70,10 @@ public class App {
 
         new ZookeeperClusterSeed((ExtendedActorSystem) system).join();
 
-        system.actorOf(Props.create(EVSManager.class),"enterprises");
-//        createSingletionEVSManager(system);
+//        system.actorOf(Props.create(EVSManager.class),"enterprises");
+        createSingletionEVSManager(system);
+        createShard(system);
+
 
         //启动http服务
         AppConfig appConfig = new AppConfig(COMMON.systemName, COMMON.HOST, COMMON.PORT, COMMON.address, 6000L);
@@ -81,5 +88,17 @@ public class App {
 
         ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system);
         system.actorOf(ClusterSingletonProxy.props("/user/enterprises", proxySettings), "enterprisesProxy");
+    }
+
+    private static void createShard(ActorSystem system) {
+
+        Option<String> roleOption = Option.none();
+        ClusterShardingSettings settings = ClusterShardingSettings.create(system);
+        ClusterSharding.get(system)
+                .start(
+                        "EVS",
+                        Props.create(EVS.class),
+                        settings,
+                        new EVSShard());
     }
 }

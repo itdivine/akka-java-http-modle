@@ -6,7 +6,7 @@ import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.javadsl.model.StatusCodes;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
-import cn.xiaoneng.skyeye.enterprise.actor.EVS.*;
+import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
@@ -22,8 +22,8 @@ public class EvsManagerController extends BaseController {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsManagerController.class);
 
-//    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
-    public static final String enterprisesProxyPath = "/user/enterprises";
+    public static final String enterprisesProxyPath = "/user/enterprisesProxy";
+//    public static final String enterprisesProxyPath = "/user/enterprises";
     private final String per_page_evs_count = "5"; //查询企业列表，每页默认查询企业个数
 
     public Route route() {
@@ -44,7 +44,7 @@ public class EvsManagerController extends BaseController {
                                             EVSInfo evs = JSON.parseObject(data, EVSInfo.class);
                                             //String actorPath = "/user" + uri.getPathString();
                                             //String actorPath = "/user/enterprisesProxy";
-                                            return complete(createEVS(enterprisesProxyPath, new EVS.Create(evs)));
+                                            return complete(createEVS(enterprisesProxyPath, new Create(evs)));
                                         }))
 
                                         .orElse(complete("请求资源不存在"))
@@ -69,10 +69,10 @@ public class EvsManagerController extends BaseController {
     }
 
 
-    private HttpResponse createEVS(String uri, EVS.Create cmd) {
+    private HttpResponse createEVS(String uri, Create cmd) {
 
         Message message = new Message(uri, cmd);
-        EVS.Result result = (EVS.Result)messageDispatcher.sendMsg(message);
+        Result result = (Result)messageDispatcher.sendMsg(message);
 //        EVS.Result result = (EVS.Result)messageDispatcher.sendShardMsg(message, "EVS");
 
         return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
