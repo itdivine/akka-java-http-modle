@@ -1,8 +1,10 @@
 package cn.xiaoneng.skyeye.enterprise.message;
 
 import akka.http.javadsl.model.StatusCode;
-import cn.xiaoneng.skyeye.base.BaseMessage;
+import cn.xiaoneng.skyeye.util.base.BaseMessage;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+
+import java.util.Set;
 
 public class EVSProtocal {
 
@@ -54,6 +56,15 @@ public class EVSProtocal {
         public Result(StatusCode code, EVSInfo evsInfo) {
             this.code = code;
             this.evsInfo = evsInfo;
+        }
+    }
+
+    public static final class EVSListResult extends BaseMessage {
+        public final StatusCode code;
+        public final Set<String> siteIds;
+        public EVSListResult(StatusCode code, Set<String> siteIds) {
+            this.code = code;
+            this.siteIds = siteIds;
         }
     }
 }

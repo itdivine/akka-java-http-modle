@@ -1,0 +1,12 @@
+1. getSelf().path().toStringWithoutAddress() : /user/enterprises/singleton
+2. getSelf().path().name() : singleton
+3. 中介者模式(Mediator)：用一个中介对象来分装一系列的对象交互。
+   中介者使各对象不需要显示地相互引用，从而使其耦合松散
+   在总线上，把当前Actor的路径注册为topic，可以接受其他Actor上报到topic的数据
+   ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+   mediator.tell(new DistributedPubSubMediator.
+        Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
+4.订阅事件 getContext().system().eventStream().subscribe(getSelf(), EvsInfoChangedEvent.class);
+  发布事件 getContext().system().eventStream().publish(event);
+5.
+

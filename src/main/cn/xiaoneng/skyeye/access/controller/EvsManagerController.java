@@ -73,7 +73,6 @@ public class EvsManagerController extends BaseController {
 
         Message message = new Message(uri, cmd);
         Result result = (Result)messageDispatcher.sendMsg(message);
-//        EVS.Result result = (EVS.Result)messageDispatcher.sendShardMsg(message, "EVS");
 
         return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
     }

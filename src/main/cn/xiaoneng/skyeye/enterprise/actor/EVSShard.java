@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.enterprise.bean;
+package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.cluster.sharding.ShardRegion;
 import org.slf4j.Logger;

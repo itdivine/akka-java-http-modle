@@ -21,7 +21,7 @@ public class ActorNames {
      * 企业虚拟空间: siteId
      * public static final String EVS;
      */
-    public static final String EVSSERVICE = "EVSService";
+    public static final String EVS = "EVS";
 
     /**
      * 主体空间管理器

@@ -1,67 +1,45 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
 import akka.actor.ActorRef;
-import akka.cluster.pubsub.DistributedPubSub;
-import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.cluster.sharding.ClusterSharding;
+import akka.http.javadsl.model.StatusCodes;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SnapshotOffer;
-import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
-import cn.xiaoneng.skyeye.util.Statics;
+import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.*;
 
 /**
  * 企业虚拟空间管理器 - 集群单例
- * <p>
- * Created by Administrator on 2016/7/25.
+ *
+ * Created by xy on 2016/7/25.
  */
 public class EVSManager extends AbstractPersistentActor {
 
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
-    //EVS分片
-//    private final ActorRef evsRegion;
-    private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion("EVS");
+    private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.EVS);
 
-//    protected ActorRef listProcessor = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.ListProcessor);
-
-    // siteId EVSActorRef 可以被优化掉，通过判断子EVS Actor是否存在
-    private static Map<String,Create> evsMap = new HashMap<>();
+    /**
+     * 开启的企业集合
+     */
+    private Set<String> siteIds = new HashSet<>();
 
     @Override
     public String persistenceId() {
-        log.info("persistenceId = " + this.getSelf().path().toStringWithoutAddress());
+        log.debug("persistenceId = " + this.getSelf().path().toStringWithoutAddress());
         return this.getSelf().path().toStringWithoutAddress();
-    }
-
-    @Override
-    public void preStart() throws Exception {
-
-        // /user/enterprises
-        log.info("EVSManager init success, path = " + getSelf().path().toStringWithoutAddress());
-        log.info("EVSManager init success, path = " + getSelf().path());
-
-        super.preStart();
-
-        //中介者模式(Mediator)：用一个中介对象来分装一系列的对象交互。中介者使各对象不需要显示地相互引用，从而使其耦合松散
-        //订阅集群事件
-        ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
-        mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
-
     }
 
     @Override
     public Receive createReceiveRecover() {
         return receiveBuilder()
-                .match(SnapshotOffer.class, s -> this.evsMap = (Map)s.snapshot())
-                .match(RecoveryCompleted.class, msg -> log.info("EVSManager RecoveryCompleted: " + evsMap))
+                .match(SnapshotOffer.class, s -> this.siteIds = (Set)s.snapshot())
+                .match(RecoveryCompleted.class, msg -> log.info("EVSManager RecoveryCompleted: " + siteIds))
                 .matchAny(msg -> log.info("EVSManager unhandled: " + msg))
                 .build();
     }
@@ -69,91 +47,47 @@ public class EVSManager extends AbstractPersistentActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .matchAny(msg -> onReceive(msg))
+                .match(Create.class, msg -> createEVS(msg))
+                .match(Get.class, msg -> shardRegion.tell(msg, getSender()))
+                .match(EVSListGet.class, msg -> list())
+                .match(Delete.class, msg -> delEVS(msg))
+                .matchAny(msg -> log.info("unhandled msg: " + msg))
                 .build();
     }
 
-    public void onReceive(Object message) {
-
-        try {
-            log.info("Receive message: " + getSender());
-
-            if (message instanceof EVSListGet) {
-                list((EVSListGet)message);
-            } else if (message instanceof Create)  {
-                createEVS((Create)message);
-            } else if (message instanceof Get)  {
-//                ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion("EVS");
-                shardRegion.tell(message, getSender());
-            } else if (message instanceof Delete)  {
-//                evsMap.remove(((EVS.Delete) message).siteId);
-            } else {
-                getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
-            }
-
-        } catch (Exception e) {
-            log.error("Exception " + e.getMessage());
-            getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
-        }
+    /**
+     * 删除企业
+     * @param msg
+     */
+    private void delEVS(Delete msg) {
+        siteIds.remove(msg.siteId);
+        saveSnapshot(siteIds);
     }
 
+    /**
+     * 创建企业
+     * @param message
+     */
     protected void createEVS(Create message) {
-
         try {
-            EVSInfo evsInfo = message.evsInfo;
-
-            String siteId = evsInfo.getSiteId();
-            if (Statics.isNullOrEmpty(siteId)) {
-                getSender().tell("{\"code\":400,\"body\":\"\"}", getSelf());
-                return;
-            }
-
-            shardRegion.tell(message, getSender());
-
-            evsMap.put(siteId, message);
-            saveSnapshot(evsMap);
-
-            /*if (evsMap.contains(evsInfo.getSiteId())) {
-                //企业已经被创建，返回201
-                getSender().tell(new EVS.Result(201, null), getSelf());
-
+            String siteId = message.evsInfo.getSiteId();
+            if(siteIds.contains(siteId)) {
+                getSender().tell(new Result(StatusCodes.CREATED, null), getSelf());
             } else {
-                //单服务节点创建企业
-                //ActorRef evsRegion = getContext().actorOf(Props.createEVS(EVS.class), evsInfo.getSiteId());
-
-                //分片创建企业
-//                evsRegion.tell(new EVS.Create(evsInfo), getSender());
-                evsRegion.tell(message, getSender());
-                evsMap.add(evsInfo.getSiteId());
-
-//                IsRegistMessage isRegistMessage = new IsRegistMessage(true, evsRegion.path().toString(), evsRegion, 10);
-//                listProcessor.tell(isRegistMessage, getSelf());
-            }*/
-
-            //getSender().tell(new EVS.Result(true, evsInfo), getSelf());
-
-            //initDefaultSourceScript(evsInfo.getSiteId());
-
+                siteIds.add(siteId);
+                shardRegion.tell(message, getSender());
+                saveSnapshot(siteIds);
+            }
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
-            getSender().tell("{\"code\":400,\"body\":\"\"}", getSelf());
+            getSender().tell(new Result(StatusCodes.BAD_REQUEST, null), getSelf());
         }
     }
 
     /**
-     * 查询子Actor列表
+     * 查询开启的企业列表
      */
-    protected void list(EVSListGet message) {
-
-        try {
-            int page = message.page;
-            int per_page = message.per_page;
-//            ListMessage listMessage = new ListMessage(page, per_page, 10);
-//            listProcessor.forward(listMessage, getContext());
-
-        } catch (Exception e) {
-            log.error("Exception " + e.getMessage());
-            getSender().tell("{\"code\":40001,\"body\":\"请求资源不存在\"}", getSelf());
-        }
+    private void list() {
+        getSender().tell(new EVSListResult(StatusCodes.OK, siteIds), getSelf());
     }
 }

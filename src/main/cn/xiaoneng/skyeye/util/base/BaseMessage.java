@@ -1,10 +1,6 @@
-package cn.xiaoneng.skyeye.base;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+package cn.xiaoneng.skyeye.util.base;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 /**
  * Created by Administrator on 2016/7/21.

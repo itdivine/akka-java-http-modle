@@ -18,7 +18,8 @@ import akka.japi.Option;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
-import cn.xiaoneng.skyeye.enterprise.bean.EVSShard;
+import cn.xiaoneng.skyeye.enterprise.actor.EVSShard;
+import cn.xiaoneng.skyeye.util.ActorNames;
 import cn.xiaoneng.skyeye.util.COMMON;
 import cn.xiaoneng.skyeye.access.code.HttpCodeRegister;
 import cn.xiaoneng.skyeye.access.controller.Routers;
@@ -96,7 +97,7 @@ public class App {
         ClusterShardingSettings settings = ClusterShardingSettings.create(system);
         ClusterSharding.get(system)
                 .start(
-                        "EVS",
+                        ActorNames.EVS,
                         Props.create(EVS.class),
                         settings,
                         new EVSShard());
