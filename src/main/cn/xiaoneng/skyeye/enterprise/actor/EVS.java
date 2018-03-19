@@ -1,14 +1,13 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
-import akka.actor.ActorSelection;
-import akka.actor.PoisonPill;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.cluster.sharding.ShardRegion;
 import akka.http.javadsl.model.StatusCodes;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
+import cn.xiaoneng.skyeye.access.Message.CollectorProtocal;
 import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerController;
 import cn.xiaoneng.skyeye.collector.actor.Collector;

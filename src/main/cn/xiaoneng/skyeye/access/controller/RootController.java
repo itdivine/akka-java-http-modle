@@ -13,7 +13,7 @@ public class RootController {
   /**
    * This route is the one that listens to the top level '/'. It can be a static method
    */
-  public static Route baseRoutes() {
+  public static Route route() {
     return pathEndOrSingleSlash(() -> // Listens to the top `/`
       complete("Server up and running")); // Completes with some text
   }

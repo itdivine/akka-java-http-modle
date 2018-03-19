@@ -52,10 +52,10 @@ public class EVSProtocal {
 
     public static final class Result extends BaseMessage {
         public final StatusCode code;
-        public final EVSInfo evsInfo;
-        public Result(StatusCode code, EVSInfo evsInfo) {
+        public final EVSInfo info;
+        public Result(StatusCode code, EVSInfo info) {
             this.code = code;
-            this.evsInfo = evsInfo;
+            this.info = info;
         }
     }
 

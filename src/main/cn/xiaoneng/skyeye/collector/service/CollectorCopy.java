@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.collector.service;//package cn.xiaoneng.skyeye.collector.service;
+//package cn.xiaoneng.skyeye.collector.service;
 //
 //import akka.actor.ActorRef;
 //import akka.actor.UntypedActor;

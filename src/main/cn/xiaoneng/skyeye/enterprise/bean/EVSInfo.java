@@ -236,7 +236,7 @@ public class EVSInfo implements Serializable {
 
 //            System.out.println(JSON.toJSONString(evsInfo1));
 
-//            JSONObject obj = (JSONObject) JSON.toJSON(evsInfo);
+//            JSONObject obj = (JSONObject) JSON.toJSON(info);
 //            System.out.println(obj);
 
         } catch (Exception e) {

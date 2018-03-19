@@ -13,7 +13,7 @@ import akka.http.javadsl.model.StatusCodes;
 public class CustomStateCode {
 
 
-    public final static StatusCode NOT_EXSIT = StatusCodes.custom(46001, "OK", "evs not exsit",true,true);
+    public final static StatusCode NOT_EXSIT = StatusCodes.custom(46001, "OK", "resource not exsit",true,true);
     public final static StatusCode TIMEOUT = StatusCodes.custom(42001, "OK", "request timeout",true,true);
 
 

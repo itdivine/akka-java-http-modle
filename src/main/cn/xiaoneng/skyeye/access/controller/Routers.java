@@ -9,8 +9,12 @@ import akka.http.javadsl.server.Route;
 public class Routers extends AllDirectives {
 
     public Route createRoute() {
-        EvsManagerController evsManagerRouter = new EvsManagerController();
+
+        EvsManagerController evsManagerController = new EvsManagerController();
         EvsController evsController = new EvsController();
-        return route(evsManagerRouter.route(), evsController.route(), RootController.baseRoutes());
+        CollectorController collectorController = new CollectorController();
+
+        return route(RootController.route(), evsManagerController.route(), evsController.route(),
+                collectorController.route());
     }
 }

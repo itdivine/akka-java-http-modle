@@ -7,6 +7,7 @@ import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.util.ActorNames;
+import cn.xiaoneng.skyeye.util.base.BaseMessage;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +23,6 @@ import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 public class EvsController extends BaseController {
 
     protected final static Logger log = LoggerFactory.getLogger(EvsController.class);
-
-    private final String path = "/system/sharding/EVS/";
 
     public Route route() {
 
@@ -56,29 +55,29 @@ public class EvsController extends BaseController {
     /**
      * 使用ShardRegion发送给Actor
      */
-    private HttpResponse getEVS(String uri, Get cmd) {
+    private HttpResponse getEVS(String uri, BaseMessage cmd) {
         Message message = new Message(uri, cmd);
         Object obj = messageDispatcher.sendShardMsg(message, ActorNames.EVS);
         if(obj != null) {
             Result result = (Result)obj;
-            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+            return response(result.code, result.info ==null ? null : JSON.toJSONString(result.info));
         } else {
             return badResponse();
         }
     }
 
-    private HttpResponse updateEVS(String uri, Update cmd) {
+    private HttpResponse updateEVS(String uri, BaseMessage cmd) {
         Message message = new Message(uri, cmd);
         Object obj = messageDispatcher.sendShardMsg(message, ActorNames.EVS);
         if(obj != null) {
             Result result = (Result)obj;
-            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+            return response(result.code, result.info ==null ? null : JSON.toJSONString(result.info));
         } else {
             return badResponse();
         }
     }
 
-    private HttpResponse deleteEVS(String uri, Delete cmd) {
+    private HttpResponse deleteEVS(String uri, BaseMessage cmd) {
 
         Object obj = null;
         Message message = new Message(uri, cmd);
@@ -91,7 +90,7 @@ public class EvsController extends BaseController {
 
         if(obj != null) {
             Result result = (Result)obj;
-            return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+            return response(result.code, result.info ==null ? null : JSON.toJSONString(result.info));
         } else {
             return badResponse();
         }

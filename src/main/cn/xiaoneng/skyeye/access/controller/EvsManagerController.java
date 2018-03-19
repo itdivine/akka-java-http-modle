@@ -8,6 +8,7 @@ import cn.xiaoneng.skyeye.access.remote.Message;
 
 import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+import cn.xiaoneng.skyeye.util.base.BaseMessage;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class EvsManagerController extends BaseController {
      * @param cmd
      * @return
      */
-    private HttpResponse getEVSList(String uri, EVSListGet cmd) {
+    private HttpResponse getEVSList(String uri, BaseMessage cmd) {
 
         Message message = new Message(uri, cmd);
 //        Object object = messageDispatcher.publishMsg(message);
@@ -69,12 +70,12 @@ public class EvsManagerController extends BaseController {
     }
 
 
-    private HttpResponse createEVS(String uri, Create cmd) {
+    private HttpResponse createEVS(String uri, BaseMessage cmd) {
 
         Message message = new Message(uri, cmd);
         Result result = (Result)messageDispatcher.sendMsg(message);
 
-        return response(result.code, result.evsInfo==null ? null : JSON.toJSONString(result.evsInfo));
+        return response(result.code, result.info ==null ? null : JSON.toJSONString(result.info));
     }
 
 }

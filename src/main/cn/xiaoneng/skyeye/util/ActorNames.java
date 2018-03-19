@@ -17,7 +17,7 @@ public class ActorNames {
      */
     public static final String EVSManager = "enterprises";
 
-    /*
+    /**
      * 企业虚拟空间: siteId
      * public static final String EVS;
      */

@@ -1,6 +1,12 @@
 package cn.xiaoneng.skyeye.collector.model;
 
+import cn.xiaoneng.skyeye.collector.util.CollectorStatus;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 采集器模型

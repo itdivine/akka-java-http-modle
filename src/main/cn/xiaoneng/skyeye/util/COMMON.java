@@ -35,6 +35,13 @@ public class COMMON {
 
 	public static String kpi_url = "";
 
+	public static String referer_url = "http://referer.ntalker.com:4101/referer/getwd?eqid=[eqid]";
+
+	public static String DOMAIN_NAME_REGEX = "[\\w-]+\\.(com|net|org|gov|cc|biz|info|cn|co)\\b(\\.(cn|hk|uk|jp|tw))*"; //www.letao.com  =>  letao.com
+	public static String IP_REGEX = "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}";   //^表示行的开头，后面接\d，表示行的开头只能是数字.
+	public static final String INPUT = "input";
+	public static final String LINK = "link";
+
 	public static void read(Config prop) {
 		address = AddressFromURIString.parse(prop.getString("address"));
 

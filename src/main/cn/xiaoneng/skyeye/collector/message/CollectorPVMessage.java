@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.collector.message;//package cn.xiaoneng.skyeye.collector.message;
+//package cn.xiaoneng.skyeye.collector.message;
 //
 //import cn.xiaoneng.skyeye.util.PVMessage;
 //

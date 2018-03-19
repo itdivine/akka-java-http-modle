@@ -1,22 +1,22 @@
 package cn.xiaoneng.skyeye.collector.actor;
 
 import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.PathMatchers;
+import static cn.xiaoneng.skyeye.access.Message.CollectorProtocal.*;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
+import akka.routing.FromConfig;
 import cn.xiaoneng.skyeye.collector.model.CollectorModel;
+//import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static cn.xiaoneng.skyeye.access.Message.CollectorProtocal.*;
-
-//import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
 
 
 /**
