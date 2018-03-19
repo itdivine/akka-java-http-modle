@@ -5,8 +5,8 @@ import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.javadsl.model.StatusCodes;
 import cn.xiaoneng.skyeye.access.remote.Message;
-import cn.xiaoneng.skyeye.enterprise.actor.EVS;
-import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
+
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;

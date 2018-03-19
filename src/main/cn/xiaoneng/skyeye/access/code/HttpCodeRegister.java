@@ -13,7 +13,7 @@ public class HttpCodeRegister {
 
     public static ServerSettings addCustomCode(ActorSystem system) {
         // Add custom method to parser settings:
-        ParserSettings parserSettings = ParserSettings.create(system).withCustomStatusCodes(CustomStateCode.EVS_NOT_EXSIT);
+        ParserSettings parserSettings = ParserSettings.create(system).withCustomStatusCodes(CustomStateCode.NOT_EXSIT);
         ServerSettings serverSettings = ServerSettings.create(system).withParserSettings(parserSettings);
         return serverSettings;
     }

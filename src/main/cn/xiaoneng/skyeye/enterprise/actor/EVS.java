@@ -1,18 +1,24 @@
 package cn.xiaoneng.skyeye.enterprise.actor;
 
-import akka.actor.*;
+import akka.actor.ActorSelection;
+import akka.actor.PoisonPill;
+import akka.actor.Props;
 import akka.cluster.sharding.ShardRegion;
 import akka.http.javadsl.model.StatusCodes;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
+import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerController;
+import cn.xiaoneng.skyeye.collector.actor.Collector;
+import cn.xiaoneng.skyeye.collector.util.CollectorStatus;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 
 /**
  * 企业虚拟空间 - 企业单例
@@ -41,32 +47,13 @@ public class EVS extends AbstractPersistentActor {
      * 初始化主体空间管理器、导航空间管理器、跟踪记录管理器、采集器
      */
     private void init() {
+        String siteId = getSelf().path().name();
+        log.info("EVS init success " + siteId);
 
-        try {
-            String siteId = getSelf().path().name();
-            log.info("EVS init success " + siteId);
-//
-
-            //百度关键词次数从配额中获取
-//            long keyWordQuota = evsInfo.getQuota().getBaidu_keyword_count();
-//            getContext().actorOf(Props.createEVS(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON, keyWordQuota}), ActorNames.COLLECTOR);
-
-            Thread.sleep(100);
-
-//            getContext().actorOf(Props.createEVS(NavigationSpaceManager.class), ActorNames.NavigationManager);
-//            getContext().actorOf(Props.createEVS(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
-//            getContext().actorOf(Props.createEVS(TrackerManager.class), ActorNames.TrackerManager);
-//            getContext().actorOf(Props.createEVS(FunActor.class), ActorNames.AUTH);
-//            getContext().actorOf(Props.createEVS(KafkaManager.class), ActorNames.KafkaManager);
-
-
-        } catch (Exception e) {
-            log.error("Exception " + e.getMessage());
-            StackTraceElement[] er = e.getStackTrace();
-            for (int i = 0; i < er.length; i++) {
-                log.info(er[i].toString());
-            }
-        }
+        //激活Collector失败
+//        String path = getSelf().path() + "/" + ActorNames.COLLECTOR;
+//        getContext().actorSelection(path).tell(CollectorProtocal.Get.class, getSender());
+        getContext().actorOf(Props.create(Collector.class), ActorNames.COLLECTOR);
     }
 
     /**
@@ -78,7 +65,7 @@ public class EVS extends AbstractPersistentActor {
     public Receive createReceiveRecover() {
         return receiveBuilder()
                 .match(SnapshotOffer.class, s -> this.evsInfo = (EVSInfo)s.snapshot())
-                //.match(Create.class, msg -> this.createEVS(((Create)msg).evsInfo)) //事件源恢复
+                //.match(Create.class, msg -> this.createEVS(((Create)msg).info)) //事件源恢复
                 .match(RecoveryCompleted.class, msg -> log.info("EVS RecoveryCompleted: " + evsInfo))
                 .matchAny(msg -> log.info("EVS unhandled: " + msg))
                 .build();
@@ -91,6 +78,7 @@ public class EVS extends AbstractPersistentActor {
                 .match(Update.class, msg -> updateEVS(msg.evsInfo))
                 .match(Get.class, msg -> getEVS())
                 .match(Delete.class, msg -> deleteEVS(msg))
+                .match(SaveSnapshotSuccess.class, msg -> log.info("EVS SaveSnapshotSuccess: " + evsInfo))
                 .matchAny(msg -> log.info("EVS unhandled: " + msg))
                 .build();
     }
@@ -99,6 +87,7 @@ public class EVS extends AbstractPersistentActor {
         log.debug("createEVS: " + evsInfo);
         if(this.evsInfo == null) {
             updateEVS(evsInfo);
+            createEVSSonActor();
         } else {
             getSender().tell(new Result(StatusCodes.CREATED, evsInfo), getSelf());
         }
@@ -108,20 +97,19 @@ public class EVS extends AbstractPersistentActor {
         log.debug("updateEVS: " + evsInfo);
         this.evsInfo = evsInfo;
         saveSnapshot(evsInfo);
-        log.info("saveSnapshot: " + evsInfo);
         getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
     }
 
     private void getEVS() {
         if(evsInfo == null) {
-            getSender().tell(new Result(CustomStateCode.EVS_NOT_EXSIT, evsInfo), getSelf());
+            getSender().tell(new Result(CustomStateCode.NOT_EXSIT, evsInfo), getSelf());
             getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         } else {
             getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
         }
     }
 
-    public void deleteEVS(Delete msg) {
+    private void deleteEVS(Delete msg) {
         log.debug("deleteEVS: " + msg.siteId);
         //1.通知EvsManager删除缓存列表中的siteId
         ActorSelection actor = getContext().getSystem().actorSelection(EvsManagerController.enterprisesProxyPath);
@@ -130,6 +118,20 @@ public class EVS extends AbstractPersistentActor {
         getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         //3.返回结果
         getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
+    }
+
+    private void createEVSSonActor() {
+            //百度关键词次数从配额中获取
+//            long keyWordQuota = info.getQuota().getBaidu_keyword_count();
+        getContext().actorOf(Props.create(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON}), ActorNames.COLLECTOR);
+
+//         Thread.sleep(100);
+
+//            getContext().actorOf(Props.create(NavigationSpaceManager.class), ActorNames.NavigationManager);
+//            getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
+//            getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
+//            getContext().actorOf(Props.create(FunActor.class), ActorNames.AUTH);
+//            getContext().actorOf(Props.create(KafkaManager.class), ActorNames.KafkaManager);
     }
 }
 

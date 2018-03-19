@@ -1,176 +1,94 @@
 package cn.xiaoneng.skyeye.collector.actor;
 
 import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.routing.FromConfig;
-import cn.xiaoneng.skyeye.bodyspace.message.BodySpaceFieldMsg;
+import akka.cluster.pubsub.DistributedPubSub;
+import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.PathMatchers;
+import akka.persistence.AbstractPersistentActor;
+import akka.persistence.RecoveryCompleted;
+import akka.persistence.SaveSnapshotSuccess;
+import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.collector.model.CollectorModel;
-import cn.xiaoneng.skyeye.collector.service.CollectorCopy;
-import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
-import cn.xiaoneng.skyeye.collector.util.CollectorConstant;
-import cn.xiaoneng.skyeye.monitor.Monitor;
-import cn.xiaoneng.skyeye.monitor.MonitorCenter;
-import cn.xiaoneng.skyeye.monitor.Node;
-import cn.xiaoneng.skyeye.navigation.message.NavSpaceFieldMsg;
-import cn.xiaoneng.skyeye.util.HTTPCommand;
-import com.alibaba.fastjson.JSONObject;
+import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import static cn.xiaoneng.skyeye.access.Message.CollectorProtocal.*;
+
+//import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
+
 
 /**
  * 采集器
  * <p>
- * Created by liangyongheng on 2016/8/5 16:19.
+ * Created by xy on 2016/8/5 16:19.
  */
-public class Collector extends UntypedActor {
+public class Collector extends AbstractPersistentActor {
 
-    protected final static Logger log = LoggerFactory.getLogger(Collector.class);
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
     private CollectorModel model;
 
-    private ActorRef handler;
+//    private static Monitor monitor = MonitorCenter.getMonitor(Node.Collector);
 
-    private ActorRef mediator;
+    public Collector(){}
+    public Collector(String siteId, int status) {
 
-    private static Monitor monitor = MonitorCenter.getMonitor(Node.Collector);
+        model = new CollectorModel(siteId, status);
+        saveSnapshot(model);
+//        this.model.siteId = getContext().getParent().path().name();
+//        ActorRef handler = getContext().actorOf(new SmallestMailboxPool(3).props(Props.createEVS(CollectorHandler.class)), "handler");
 
-    private static Map<String, Long> lastKeyWordCountMap = new ConcurrentHashMap<>();
-
-    //    private static AtomicLong lastKeyWordCount = new AtomicLong();
-//
-    public static long getLastKeyWordCount(String siteid) {
-
-        if (lastKeyWordCountMap.containsKey(siteid)) {
-
-            return lastKeyWordCountMap.get(siteid);
-        }
-        return 0;
+        // 不能删除
+//        ActorRef handler = getContext().actorOf(FromConfig.getInstance().props(Props.create(CollectorHandler.class, status)), "handler");
+        //getContext().actorOf(Props.create(CollectorCopy.class), "copy");
     }
-
-    public static synchronized void upadteLastKeyWordCount(String siteid) {
-
-        if (lastKeyWordCountMap.containsKey(siteid)) {
-            long lastCount = lastKeyWordCountMap.get(siteid);
-            lastKeyWordCountMap.put(siteid, --lastCount);
-        }
-    }
-
 
     @Override
     public void preStart() throws Exception {
-
-//        mediator = DistributedPubSub.get(this.getContext().system()).mediator();
-//        mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
-
-        this.getContext().system().eventStream().subscribe(getSelf(), NavSpaceFieldMsg.class);
-        this.getContext().system().eventStream().subscribe(getSelf(), BodySpaceFieldMsg.class);
-
-
         super.preStart();
-    }
+        String topic = model.getSiteId() + PathMatchers.slash() + ActorNames.COLLECTOR; // kf_1003/collector
+        ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+        mediator.tell(new DistributedPubSubMediator.Subscribe(topic, ActorNames.NSkyEye, getSelf()), getSelf());
 
-    public Collector(String siteId, int status, long keyWord) {
-
-        model = new CollectorModel();
-
-        model.setSiteId(siteId);
-        model.setStatus(status);
-        lastKeyWordCountMap.put(siteId,keyWord);
-
-//        handler = getContext().actorOf(Props.createEVS(CollectorHandler.class), "handler");
-//        handler = getContext().actorOf(new SmallestMailboxPool(3).props(Props.createEVS(CollectorHandler.class)), "handler");
-        handler = getContext().actorOf(FromConfig.getInstance().props(Props.create(CollectorHandler.class, status)), "handler");
-
-        getContext().actorOf(Props.create(CollectorCopy.class), "copy");
-
-        log.debug("collector init success! path:" + getSelf().path());
+        // akka://NSkyEye/system/sharding/EVS/18/kf_1003/collector
+        log.info("collector init success! path:" + getSelf().path());
     }
 
     @Override
-    public void onReceive(Object message) throws Throwable {
-
-        long start = System.currentTimeMillis();
-
-        try {
-
-            if (message instanceof String) {
-
-                log.debug("Receive message: " + message);
-                doHttpRequest((String) message);
-
-            } else if (message instanceof NavSpaceFieldMsg) {
-
-                //处理采集字段消息
-                log.debug("Receive message: " + message);
-                processNavSpaceMsg((NavSpaceFieldMsg) message);
-
-            } else if (message instanceof BodySpaceFieldMsg) {
-
-                log.debug("Receive message: " + message);
-                this.model.addBodySpaceFields(((BodySpaceFieldMsg) message).getSpaceFieldSet());
-            }
-
-        } catch (Exception e) {
-
-            getSender().tell("{\"body\" : \"服务器错误\",\"status\" : 404}", getSelf());
-            log.error("exception " + e.getMessage());
-
-        } finally {
-            long end = System.currentTimeMillis();
-            long span = end - start;
-            if (span > 1000) {
-                log.warn("onReceive span=" + span + " msg=" + message);
-            }
-
-        }
+    public String persistenceId() {
+        return this.getSelf().path().toStringWithoutAddress();
     }
 
-    /**
-     * 处理http请求
-     *
-     * @param msg
-     */
-    private void doHttpRequest(String msg) {
-
-        JSONObject json = JSONObject.parseObject(msg);
-
-        String command = json.getString(CollectorConstant.METHOD);
-
-        //查询一个采集器
-        if (HTTPCommand.GET.equals(command)) {
-
-            String rtnJson = "{\"body\":{\"status\":" + this.model.getStatus() + "},\"status\":200}";
-            getSender().tell(rtnJson, getSelf());
-
-        } else if (HTTPCommand.PUT.equals(command)) {
-
-            //更新采集器状态、字段状态
-            update(json.getJSONObject("body"));
-
-        } else if (HTTPCommand.POST.equals(command)) {
-
-        } else {
-
-        }
+    @Override
+    public Receive createReceiveRecover() {
+        return receiveBuilder()
+                .match(SnapshotOffer.class, s -> this.model = (CollectorModel)s.snapshot())
+                .match(RecoveryCompleted.class, msg -> log.info("RecoveryCompleted: " + model))
+                .matchAny(msg -> log.info("unhandled: " + msg))
+                .build();
     }
 
-    private void update(JSONObject json) {
-
-        if (json.containsKey(CollectorConstant.STATUS)) {
-
-            this.model.setStatus(json.getInteger(CollectorConstant.STATUS));
-        }
-        getSender().tell("{\"body\":{\"status\":" + this.model.getStatus() + "},\"status\":200}", getSelf());
+    @Override
+    public Receive createReceive() {
+        return receiveBuilder()
+                .match(Get.class, msg -> get())
+                .match(Update.class, this::update)
+                .match(DistributedPubSubMediator.SubscribeAck.class, msg -> log.info("Subscribe Success"))
+                .match(SaveSnapshotSuccess.class, msg -> log.info("SaveSnapshotSuccess: " + model))
+                .matchAny(msg -> log.info("unhandled: " + msg))
+                .build();
     }
 
-    private void processNavSpaceMsg(NavSpaceFieldMsg message) {
-
-        this.model.addNavSpaceFields(message.getSpaceName(), message.getFieldList());
+    private void update(Update msg) {
+        log.debug("update: " + msg);
+        this.model = msg.model;
+        saveSnapshot(model);
+        getSender().tell(new Result(StatusCodes.OK, model), getSelf());
     }
 
-
+    private void get() {
+        getSender().tell(new Result(StatusCodes.OK, model), getSelf());
+    }
 }

@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.enterprise.message;
+package cn.xiaoneng.skyeye.access.Message;
 
 import akka.http.javadsl.model.StatusCode;
 import cn.xiaoneng.skyeye.util.base.BaseMessage;

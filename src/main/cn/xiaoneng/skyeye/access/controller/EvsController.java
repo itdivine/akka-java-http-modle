@@ -5,13 +5,12 @@ import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.remote.Message;
-import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 
 /**
  * Created by XuYang on 2017/9/20.

@@ -4,7 +4,7 @@ import akka.cluster.sharding.ShardRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 
 public class EVSShard implements ShardRegion.MessageExtractor {
 

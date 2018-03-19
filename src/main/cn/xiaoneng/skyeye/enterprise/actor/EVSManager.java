@@ -5,13 +5,16 @@ import akka.cluster.sharding.ClusterSharding;
 import akka.http.javadsl.model.StatusCodes;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
+import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
-import static cn.xiaoneng.skyeye.enterprise.message.EVSProtocal.*;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+
+import static cn.xiaoneng.skyeye.access.Message.EVSProtocal.*;
 
 /**
  * 企业虚拟空间管理器 - 集群单例
@@ -51,6 +54,7 @@ public class EVSManager extends AbstractPersistentActor {
                 .match(Get.class, msg -> shardRegion.tell(msg, getSender()))
                 .match(EVSListGet.class, msg -> list())
                 .match(Delete.class, msg -> delEVS(msg))
+                .match(SaveSnapshotSuccess.class, msg -> log.info("EVSManager SaveSnapshotSuccess: " + siteIds))
                 .matchAny(msg -> log.info("unhandled msg: " + msg))
                 .build();
     }
