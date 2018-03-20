@@ -32,7 +32,7 @@ public class Collector extends AbstractPersistentActor {
 
 //    private static Monitor monitor = MonitorCenter.getMonitor(Node.Collector);
 
-    public Collector(){}
+//    public Collector(){}
     public Collector(String siteId, int status) {
 
         model = new CollectorModel(siteId, status);

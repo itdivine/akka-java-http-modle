@@ -52,7 +52,7 @@ public class EVS extends AbstractPersistentActor {
         //激活Collector失败
 //        String path = getSelf().path() + "/" + ActorNames.COLLECTOR;
 //        getContext().actorSelection(path).tell(CollectorProtocal.Get.class, getSender());
-        getContext().actorOf(Props.create(Collector.class), ActorNames.COLLECTOR);
+//        getContext().actorOf(Props.create(Collector.class), ActorNames.COLLECTOR);
     }
 
     /**
