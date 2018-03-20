@@ -11,19 +11,17 @@
     <url>http://maven.apache.org</url>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <akka_http_version>10.0.9</akka_http_version>
+        <akka.http.version>10.0.9</akka.http.version>
         <akka.version>2.5.3</akka.version>
         <slf4j.version>1.7.7</slf4j.version>
         <logback.version>1.1.2</logback.version>
+        <storage.version>2.0.0.7_release</storage.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>cn.xiaoneng</groupId>
-            <artifactId>nt-useragent</artifactId>
-            <version>1.0</version>
-        </dependency>
         <dependency>
             <groupId>com.sclasen</groupId>
             <artifactId>akka-zk-cluster-seed_2.12</artifactId>
@@ -47,7 +45,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_2.12</artifactId>
-            <version>${akka_http_version}</version>
+            <version>${akka.http.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
@@ -57,7 +55,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http-testkit_2.12</artifactId>
-            <version>${akka_http_version}</version>
+            <version>${akka.http.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -164,31 +162,163 @@
             <artifactId>sigar-loader</artifactId>
             <version>1.6.6-rev002</version>
         </dependency>
-
+        <dependency>
+            <groupId>cn.xiaoneng.nt</groupId>
+            <artifactId>log-sdk</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.xiaoneng</groupId>
+            <artifactId>nt-kafka-sdk</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.xiaoneng.nskybean</groupId>
+            <artifactId>nskybean</artifactId>
+            <version>1.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.xiaoneng</groupId>
+            <artifactId>nt-useragent</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>cn.xiaoneng.storage</groupId>-->
+            <!--<artifactId>StorageConsumer</artifactId>-->
+            <!--<version>${storage.version}</version>-->
+        <!--</dependency>-->
     </dependencies>
     <build>
+
+        <!--<resources>-->
+        <!--<resource>-->
+        <!--<directory>src/main/resources</directory>-->
+        <!--<filtering>true</filtering>-->
+        <!--<includes>-->
+        <!--<include>**/*.*</include>-->
+        <!--</includes>-->
+        <!--&lt;!&ndash; 排除  &ndash;&gt;-->
+        <!--<excludes>-->
+        <!--<exclude>conf/akka_system.properties</exclude>-->
+        <!--</excludes>-->
+
+        <!--</resource>-->
+
+        <!--</resources>-->
+
         <plugins>
+            <!-- 必须要，否则不能混合编译交叉引用文件 -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.2.2</version>
+                <executions>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 跳过单元测试 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
+
+            <!-- 将依赖包拷贝至target/lib下 -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 导出jar包，注意文件开头处的<packaging>标签须为“jar” -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
                 <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <classpath/>
-                        <argument>example.HttpServer</argument>
-                    </arguments>
+                    <classesDirectory>target/classes/</classesDirectory>
+                    <excludes>
+                        <!-- 打jar包时，排除配置文件 -->
+                        <exclude>akka_system.properties</exclude>
+                        <exclude>*.conf</exclude>
+                    </excludes>
+                    <includes>
+                        <!-- 打jar包时，只打包class文件 -->
+                        <include>**/*.class</include>
+                        <include>db.properties</include>
+                        <include>**/*.xml</include>
+                        <include>17monipdb.dat</include>
+                    </includes>
+                    <archive>
+                        <manifest>
+                            <mainClass>cn.xiaoneng.skyeye.App2</mainClass>
+                            <!-- 打包时manifest.mf不记录时间戳 -->
+                            <useUniqueVersions>flase</useUniqueVersions>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <!--在Class-Path下添加配置文件的路径-->
+                            <Class-Path>conf/</Class-Path>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
+            </plugin>
+            <!-- 将配置文件拷贝至conf/下，注意main方法加载时读取配置文件 -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

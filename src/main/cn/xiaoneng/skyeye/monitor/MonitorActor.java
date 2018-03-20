@@ -1,15 +1,21 @@
 package cn.xiaoneng.skyeye.monitor;
 
-import akka.actor.UntypedActor;
+
+import akka.actor.AbstractActor;
 
 /**
  * Created by Administrator on 2017/3/22.
  */
-public class MonitorActor extends UntypedActor {
+public class MonitorActor extends AbstractActor {
 
 
     @Override
-    public void onReceive(Object message) throws Throwable {
+    public AbstractActor.Receive createReceive() {
+        return receiveBuilder()
+                .matchAny(this::onReceive)
+                .build();
+    }
+    public void onReceive(Object message) {
 
 //        try {
 //

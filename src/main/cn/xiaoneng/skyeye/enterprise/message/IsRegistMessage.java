@@ -1,7 +1,7 @@
 package cn.xiaoneng.skyeye.enterprise.message;
 
 import akka.actor.ActorRef;
-import cn.xiaoneng.skyeye.util.base.BaseMessage;
+import cn.xiaoneng.skyeye.util.BaseMessage;
 
 import java.io.Serializable;
 

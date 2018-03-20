@@ -2,7 +2,7 @@ package cn.xiaoneng.skyeye.access.Message;
 
 import akka.http.javadsl.model.StatusCode;
 import cn.xiaoneng.skyeye.collector.model.CollectorModel;
-import cn.xiaoneng.skyeye.util.base.BaseMessage;
+import cn.xiaoneng.skyeye.util.BaseMessage;
 
 public class CollectorProtocal {
 

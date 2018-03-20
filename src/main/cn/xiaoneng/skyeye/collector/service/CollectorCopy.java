@@ -2,7 +2,6 @@ package cn.xiaoneng.skyeye.collector.service;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
 import cn.xiaoneng.skyeye.monitor.Node;

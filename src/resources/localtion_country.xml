@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<country>安圭拉,Anguilla</country>
+	<country>莫桑比克,Mozambique</country>
+	<country>新喀里多尼亚,New Caledonia</country>
+	<country>托克劳,Tokelau</country>
+	<country>哥斯达黎加,Costa Rica</country>
+	<country>津巴布韦,Zimbabwe</country>
+	<country>马耳他,Malta</country>
+	<country>冈比亚,Gambia</country>
+	<country>卢森堡,Luxembourg</country>
+	<country>圣卢西亚,Saint Lucia</country>
+	<country>马提尼克,Martinique</country>
+	<country>凯里,Carey</country>
+	<country>斯威士兰,Swaziland</country>
+	<country>坦桑尼亚,Tanzania</country>
+	<country>几内亚,Guinea</country>
+	<country>秘鲁,Peru</country>
+	<country>叙利亚,Syria</country>
+	<country>纽埃,Niue</country>
+	<country>老挝,Laos</country>
+	<country>马达加斯加,Madagascar</country>
+	<country>图瓦卢,Tuvalu</country>
+	<country>塞浦路斯,Cyprus</country>
+	<country>格林纳达,Grenada</country>
+	<country>安哥拉,Angola</country>
+	<country>苏丹,Sudan</country>
+	<country>比利时,Belgium</country>
+	<country>根西岛,Guernsey</country>
+	<country>约旦,Jordan</country>
+	<country>肯尼亚,Kenya</country>
+	<country>蒙塞拉特岛,Montserrat</country>
+	<country>塞舌尔,Seychelles</country>
+	<country>新加坡,Singapore</country>
+	<country>瓦利斯和富图纳,Wallis and Futuna</country>
+	<country>伊拉克,Iraq</country>
+	<country>科特迪瓦,Cote d'Ivoire</country>
+	<country>墨西哥,Mexico</country>
+	<country>朝鲜,Korea</country>
+	<country>沙特阿拉伯,Saudi Arabia</country>
+	<country>乍得,Chad</country>
+	<country>阿根廷,Argentina</country>
+	<country>奥地利,Austria</country>
+	<country>毛里求斯,Mauritius</country>
+	<country>埃及,Egypt</country>
+	<country>瑞典,Sweden</country>
+	<country>丹麦,Denmark</country>
+	<country>格陵兰,Greenland</country>
+	<country>塞尔维亚和黑山,Serbia and Montenegro</country>
+	<country>阿联酋,United Arab Emirates</country>
+	<country>爱沙尼亚,Estonia</country>
+	<country>英国,United Kingdom</country>
+	<country>苏里南,Surinam</country>
+	<country>英格兰,England</country>
+	<country>荷兰,Netherlands</country>
+	<country>多哥,Togo</country>
+	<country>孟加拉,Bengal</country>
+	<country>立陶宛,Lithuania</country>
+	<country>特立尼达和多巴哥,Trinidad and Tobago</country>
+	<country>博茨瓦纳,Botswana</country>
+	<country>阿塞拜疆,Azerbaijan</country>
+	<country>中非,Central Africa</country>
+	<country>梵蒂冈,Vatican</country>
+	<country>意大利,Italy</country>
+	<country>卡塔尔,Qatar</country>
+	<country>玻利维亚,Bolivia</country>
+	<country>阿尔巴尼亚,Albania</country>
+	<country>台湾,Taiwan</country>
+	<country>马恩岛,Isle of Man</country>
+	<country>柬埔寨,Cambodia</country>
+	<country>斯洛伐克,Slovakia</country>
+	<country>文莱,Brunei</country>
+	<country>巴勒斯坦,Palestine</country>
+	<country>利比里亚,Liberia</country>
+	<country>纳米比亚,Namibia</country>
+	<country>圭亚那,Guyana</country>
+	<country>新西兰,new Zealand</country>
+	<country>洪都拉斯,Honduras</country>
+	<country>黑山,Montenegro</country>
+	<country>法属圭亚那,French Guiana</country>
+	<country>亚美尼亚,Armenia</country>
+	<country>克罗地亚,Croatia</country>
+	<country>俄罗斯,Russia</country>
+	<country>索马里,Somalia</country>
+	<country>圣多美和普林西比,Sao Tome and Principe</country>
+	<country>贝宁,Benin</country>
+	<country>菲律宾,Philippines</country>
+	<country>不丹,Bhutan</country>
+	<country>冰岛,Iceland</country>
+	<country>关岛,Guam</country>
+	<country>也门,Yemen</country>
+	<country>匈牙利,Hungary</country>
+	<country>圣马力诺,San Marino</country>
+	<country>瓦努阿图,Vanuatu</country>
+	<country>哥伦比亚,Colombia</country>
+	<country>SX,SX</country>
+	<country>吉尔吉斯斯坦,Kyrgyzstan</country>
+	<country>伯利兹,Belize</country>
+	<country>美属萨摩亚,Samoa</country>
+	<country>美国,United States</country>
+	<country>塞拉利昂,Sierra Leone</country>
+	<country>缅甸,Myanmar</country>
+	<country>波多黎各,Puerto Rico</country>
+	<country>赤道几内亚,Equatorial Guinea</country>
+	<country>法属圣马丁,French Saint Martin</country>
+	<country>巴布亚新几内亚,Papua New Guinea</country>
+	<country>百慕大,Bermuda</country>
+	<country>荷属安的列斯,Netherlands Antilles</country>
+	<country>湖北,Hubei</country>
+	<country>土耳其,Turkey</country>
+	<country>智利,Chile</country>
+	<country>海地,Haiti</country>
+	<country>加拿大,Canada</country>
+	<country>河南,Henan</country>
+	<country>马尔代夫,Maldives</country>
+	<country>巴基斯坦,Pakistan</country>
+	<country>阿富汗,Afghanistan</country>
+	<country>印度,India</country>
+	<country>斯里兰卡,Sri Lanka</country>
+	<country>留尼汪,Reunion</country>
+	<country>塔吉克斯坦,Tajikistan</country>
+	<country>马里,Mali</country>
+	<country>罗马尼亚,Romania</country>
+	<country>尼日利亚,Nigeria</country>
+	<country>乌拉圭,Uruguay</country>
+	<country>摩纳哥,Monaco</country>
+	<country>捷克,Czech</country>
+	<country>委内瑞拉,Venezuela</country>
+	<country>摩尔多瓦,Moldova</country>
+	<country>波兰,Poland</country>
+	<country>阿曼,Oman</country>
+	<country>危地马拉,Guatemala</country>
+	<country>尼泊尔,Nepal</country>
+	<country>非洲,Africa</country>
+	<country>埃塞俄比亚,Ethiopia</country>
+	<country>吉布提,Djibouti</country>
+	<country>湖北教育局,Hubei Bureau</country>
+	<country>瑞士,Switzerland</country>
+	<country>澳大利亚,Australia</country>
+	<country>布隆迪,Burundi</country>
+	<country>泰国,Thailand</country>
+	<country>利比亚,Libya</country>
+	<country>圣基茨和尼维斯,St. Kitts and Nevis</country>
+	<country>布基纳法索,Burkina Faso</country>
+	<country>拉脱维亚,Latvia</country>
+	<country>古巴,Cuba</country>
+	<country>萨摩亚,Samoa</country>
+	<country>芬兰,Finland</country>
+	<country>法国,France</country>
+	<country>黎巴嫩,Lebanon</country>
+	<country>直布罗陀,Gibraltar</country>
+	<country>本机地址,Native address</country>
+	<country>莱索托,Lesotho</country>
+	<country>毛里塔尼亚,Mauritania</country>
+	<country>阿尔及利亚,Algeria</country>
+	<country>瓜德罗普,Guadeloupe</country>
+	<country>乌兹别克斯坦,Uzbekistan</country>
+	<country>土库曼斯坦,Turkmenistan</country>
+	<country>巴巴多斯,Barbados</country>
+	<country>圣皮埃尔和密克隆,Saint Pierre and Miquelon</country>
+	<country>圣文森特和格林纳丁斯,Saint Vincent and the Grenadines</country>
+	<country>厄立特里亚,Eritrea</country>
+	<country>多米尼加,Dominica</country>
+	<country>法属波利尼西亚,French Polynesia</country>
+	<country>波黑,Bosnia and Herzegovina</country>
+	<country>多米尼克,Dominica</country>
+	<country>东帝汶,East Timor</country>
+	<country>日本,Japan</country>
+	<country>爱尔兰,Ireland</country>
+	<country>巴林,Bahrain</country>
+	<country>加蓬,Gabon</country>
+	<country>希腊,Greece</country>
+	<country>马拉维,Malawi</country>
+	<country>安提瓜和巴布达,Antigua and Barbuda</country>
+	<country>斐济,Fiji</country>
+	<country>帕劳,Palau</country>
+	<country>越南,Vietnam</country>
+	<country>巴哈马,Bahamas</country>
+	<country>蒙古,Mongolia</country>
+	<country>泽西岛,Jersey</country>
+	<country>突尼斯,Tunisia</country>
+	<country>刚果共和国,Republic of the Congo</country>
+	<country>喀麦隆,Cameroon</country>
+	<country>哈萨克斯坦,Kazakhstan</country>
+	<country>牙买加,Jamaica</country>
+	<country>挪威,Norway</country>
+	<country>阿鲁巴,Aruba</country>
+	<country>卢旺达,Rwanda</country>
+	<country>汤加,Tonga</country>
+	<country>欧盟,EU</country>
+	<country>德国,Germany</country>
+	<country>乌克兰,Ukraine</country>
+	<country>加纳,Ghana</country>
+	<country>马来西亚,Malaysia</country>
+	<country>韩国,Korea</country>
+	<country>塞尔维亚,Serbia</country>
+	<country>几内亚比绍,Guinea-Bissau</country>
+	<country>乌干达,Uganda</country>
+	<country>伊朗,Iran</country>
+	<country>保加利亚,Bulgarian</country>
+	<country>赞比亚,Zambia</country>
+	<country>科摩罗,Comoros</country>
+	<country>波斯尼亚和黑塞哥维那,Bosnia and Herzegovina</country>
+	<country>巴西,Brazil</country>
+	<country>斯洛文尼亚,Slovenia</country>
+	<country>佛得角,Cape Verde</country>
+	<country>西班牙,Spain</country>
+	<country>联合国,United Nations</country>
+	<country>基里巴斯,Kiribati</country>
+	<country>葡萄牙,Portugal</country>
+	<country>列支敦士登,Liechtenstein</country>
+	<country>巴拿马,Panama</country>
+	<country>塞内加尔,Senegal</country>
+	<country>印度尼西亚,Indonesia</country>
+	<country>尼日尔,Niger</country>
+	<country>尼加拉瓜,Nicaragua</country>
+	<country>全国通用,National General</country>
+	<country>萨尔瓦多,El Salvador</country>
+	<country>维多利亚,Victoria</country>
+	<country>白俄罗斯,Belarus</country>
+	<country>厄瓜多尔,Ecuador</country>
+	<country>马其顿,Macedonia</country>
+	<country>格鲁吉亚,Georgia</country>
+	<country>以色列,Israel</country>
+	<country>密克罗尼西亚联邦,Federated States of Micronesia</country>
+	<country>南非,South Africa</country>
+	<country>科威特,Kuwait</country>
+	<country>巴拉圭,Paraguay</country>
+	<country>摩洛哥,Morocco</country>
+	<country>诺福克岛,Norfolk Island</country>
+	<country>瑙鲁,Nauru</country>
+</root>

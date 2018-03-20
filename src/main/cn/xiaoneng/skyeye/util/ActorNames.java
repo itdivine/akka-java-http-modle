@@ -6,7 +6,7 @@ package cn.xiaoneng.skyeye.util;
  */
 public class ActorNames {
 
-
+    public static final String Chat = "Chat";
     public static final String SLASH = "/";
     /**
      * 轨迹云

@@ -10,6 +10,7 @@ import akka.persistence.SnapshotOffer;
 import cn.xiaoneng.skyeye.access.Message.CollectorProtocal;
 import cn.xiaoneng.skyeye.access.code.CustomStateCode;
 import cn.xiaoneng.skyeye.access.controller.EvsManagerController;
+import cn.xiaoneng.skyeye.bodyspace.actor.BodySpaceManager;
 import cn.xiaoneng.skyeye.collector.actor.Collector;
 import cn.xiaoneng.skyeye.collector.util.CollectorStatus;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
@@ -92,6 +93,19 @@ public class EVS extends AbstractPersistentActor {
         }
     }
 
+    private void createEVSSonActor() {
+        //百度关键词次数从配额中获取
+//            long keyWordQuota = info.getQuota().getBaidu_keyword_count();
+        getContext().actorOf(Props.create(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON}), ActorNames.COLLECTOR);
+        getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
+
+//            getContext().actorOf(Props.create(NavigationSpaceManager.class), ActorNames.NavigationManager);
+//            getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
+//            getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
+//            getContext().actorOf(Props.create(FunActor.class), ActorNames.AUTH);
+//            getContext().actorOf(Props.create(KafkaManager.class), ActorNames.KafkaManager);
+    }
+
     private void updateEVS(EVSInfo evsInfo) {
         log.debug("updateEVS: " + evsInfo);
         this.evsInfo = evsInfo;
@@ -117,20 +131,6 @@ public class EVS extends AbstractPersistentActor {
         getContext().parent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
         //3.返回结果
         getSender().tell(new Result(StatusCodes.OK, evsInfo), getSelf());
-    }
-
-    private void createEVSSonActor() {
-            //百度关键词次数从配额中获取
-//            long keyWordQuota = info.getQuota().getBaidu_keyword_count();
-        getContext().actorOf(Props.create(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON}), ActorNames.COLLECTOR);
-
-//         Thread.sleep(100);
-
-//            getContext().actorOf(Props.create(NavigationSpaceManager.class), ActorNames.NavigationManager);
-//            getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
-//            getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
-//            getContext().actorOf(Props.create(FunActor.class), ActorNames.AUTH);
-//            getContext().actorOf(Props.create(KafkaManager.class), ActorNames.KafkaManager);
     }
 }
 

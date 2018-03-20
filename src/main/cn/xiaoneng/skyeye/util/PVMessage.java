@@ -1,7 +1,5 @@
 package cn.xiaoneng.skyeye.util;
 
-import cn.xiaoneng.skyeye.util.base.BaseMessage;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

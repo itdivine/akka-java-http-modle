@@ -1,6 +1,6 @@
 package cn.xiaoneng.skyeye.config;
 
-import akka.actor.UntypedActor;
+import akka.actor.AbstractActor;
 import cn.xiaoneng.skyeye.config.model.ItemKeyModel;
 import cn.xiaoneng.skyeye.util.HTTPCommand;
 import com.alibaba.fastjson.JSON;
@@ -14,12 +14,17 @@ import java.util.Map;
 /**
  * Created by liangyongheng on 2016/8/24 18:00.
  */
-public class ItemConfigKeyActor extends UntypedActor {
+public class ItemConfigKeyActor extends AbstractActor {
 
     private Map<String, List<ItemKeyModel>> siteItemMap = new HashMap<>();
 
     @Override
-    public void onReceive(Object message) throws Throwable {
+    public AbstractActor.Receive createReceive() {
+        return receiveBuilder()
+                .matchAny(this::onReceive)
+                .build();
+    }
+    public void onReceive(Object message) {
 
         JSONObject json = JSON.parseObject((String) message);
         String method = json.getString("method");

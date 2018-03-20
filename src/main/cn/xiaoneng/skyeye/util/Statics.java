@@ -20,7 +20,7 @@ public class Statics {
 	 * 获取Actor路径中的企业ID
 	 * @param it  getSelf().path().elements().iterator())
 	 * @return siteId
-     */
+	 */
 	public static String getSiteId(scala.collection.Iterator<String> it) {
 
 		it.next();
@@ -98,47 +98,6 @@ public class Statics {
 		return version;
 	}
 
-	public static boolean isGuest(String id)
-	{
-		if(id==null)
-			return false;
-
-		if(id.contains("_ISME9754_guest"))
-			return true;
-
-		return false;
-	}
-
-	public static boolean isVID(String id)
-	{
-		if(isWID(id) ||  isEID(id))
-			return false;
-
-		if(id.contains(NTALKER_UID))
-			return true;
-
-		return false;
-	}
-
-	public static boolean isWID(String id)
-	{
-		if(id==null||id.isEmpty()){
-			return false;
-		}
-		if(id.contains("_ISME9754_T2D_"))
-			return true;
-		return false;
-	}
-	public static boolean isEID(String id)
-	{
-		if(id==null||id.isEmpty()){
-			return false;
-		}
-		if(id.contains("_ISME9754_GT2D"))
-			return true;
-		return false;
-	}
-
 	@SuppressWarnings("deprecation")
 	public static long getTodayStartTime() {
 
@@ -182,46 +141,6 @@ public class Statics {
 		return df.parse(param).getTime();
 	}
 
-	//kf_9968_ISME9754_13790467234    kf_9968_ISME9754_guestBFCCD337-C937-4C
-	public static boolean isLoginUser(String uid)
-	{
-		if(uid==null)
-			return false;
-
-		String theuid = uid.toUpperCase();
-
-		if(theuid.contains("_ISME9754_GUEST"))
-			return false;
-		else
-			return true;
-	}
-
-	public static String ParasePeerUidFromUid(String uid)
-	{
-		if(!uid.contains(NTALKER_UID))
-			return uid;
-
-		int startindex = uid.indexOf(NTALKER_UID);
-		return uid.substring(startindex + NTALKER_UID.length());
-	}
-
-	public static String getSiteByUid(String uid) {
-
-		try {
-
-			if (uid == null || uid.isEmpty() || !uid.contains(NTALKER_UID))
-				return null;
-
-			return uid.substring(0, uid.indexOf(NTALKER_UID));
-
-		} catch (Exception e) {
-			log.warning("Exception :" + e);
-
-		}
-		return null;
-
-	}
-
 	public static String checkEmpty(String param) {
 
 		return param==null?"":param;
@@ -238,16 +157,7 @@ public class Statics {
 		return param;
 	}
 
-	public static boolean checkSiteId(String siteId) {
 
-		if(isNullOrEmpty(siteId))
-			return false;
-
-		if(siteId.equals("<{$service.sellerid}>")) //temp - xy
-			return false;
-
-		return true;
-	}
 
 	public static long checkLength(long param,int maxlen) {
 
@@ -290,21 +200,6 @@ public class Statics {
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		return cal.getTimeInMillis();
-	}
-
-	public static String getUid(String userid)
-	{
-		if(userid==null || userid.indexOf(NTALKER_UID)<0)
-			return null;
-
-		int begin = userid.indexOf(NTALKER_UID);
-		if(begin<0)
-			return null;
-
-		String uid = null;
-		uid = userid.substring(begin + NTALKER_UID.length());
-
-		return uid;
 	}
 
 	public static long division(long divisor, long dividend)
@@ -414,7 +309,7 @@ public class Statics {
 	 */
 	public static long getDayDif(long time , long time1) {
 
-		return (long)(time - time1)/(24*60*60);
+		return (long)(time - time1)/(24*60*60*1000);
 	}
 
 	public static String getToday() {
@@ -460,16 +355,7 @@ public class Statics {
 		return false;
 	}
 
-	public static boolean isTestUser(String userid) {
 
-		if(userid==null)
-			return false;
-
-		if(userid.contains("_guestWEBPCID_TEST_"))
-			return true;
-
-		return false;
-	}
 
 	/**
 	 * 从HTTP请求中获取一个参数的值
@@ -506,9 +392,56 @@ public class Statics {
 		return "{\"status\":400,\"body\":\"Invalid API key\"}";
 	}
 
+	/**
+	 * 判断两个日期是否是同一天
+	 *
+	 * @param date1 date1
+	 * @param date2 date2
+	 * @return
+	 */
+	public static boolean isSameDate(Date date1, Date date2) {
+		Calendar cal1 = Calendar.getInstance();
+		cal1.setTime(date1);
+
+		Calendar cal2 = Calendar.getInstance();
+		cal2.setTime(date2);
+
+		boolean isSameYear = cal1.get(Calendar.YEAR) == cal2
+				.get(Calendar.YEAR);
+		boolean isSameMonth = isSameYear
+				&& cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH);
+		boolean isSameDate = isSameMonth
+				&& cal1.get(Calendar.DAY_OF_MONTH) == cal2
+				.get(Calendar.DAY_OF_MONTH);
+
+		return isSameDate;
+	}
+
+	public static boolean is24Hours(long time, long time1) {
+		long dif = Math.abs(time - time1);
+		if(dif < 24*60*60*1000)
+			return true;
+		return false;
+	}
+
+	public static boolean is3Day(long time, long time1) {
+		long dif = Math.abs(time - time1);
+		if(dif < 3*24*60*60*1000)
+			return true;
+		return false;
+	}
+
 	public static void main(String[] args) {
-		String url ="https://www.baidu.com/link?wd=&eqid=ab25673f00006c8000000002576d0145";
-		String p = "eqid";
-		System.out.println(getParamFromUrl(url, p));
+//		String url ="https://www.baidu.com/link?wd=&eqid=ab25673f00006c8000000002576d0145";
+//		String p = "eqid";
+//		System.out.println(getParamFromUrl(url, p));
+
+//		String url = "http://www.baidu.com/link?url=ZvKNZeSh-Kh6MD90P1J52DC4cX82YHUUD24VNn0fM-qAxWxErVtDyMXwlC4O1CNY&ie=utf-8&f=8&tn=baidu&wd=%E5%B0%8F%E8%83%BD%E7%A7%91%E6%8A%80&rqlang=cn&inputT=1028";
+//		String regex = "(&|\\?)(wd|word)=([^&]*)";
+//		System.out.println(regex_match(url, regex));
+
+		//1.获取3天前的时间戳
+		System.out.println(isSameDate(new Date(1514361476603L), new Date(1514361476604L)));
+		System.out.println(1514361476603L-1513672113356L);
 	}
 }

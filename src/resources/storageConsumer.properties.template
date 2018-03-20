@@ -1,0 +1,4 @@
+storage.zk.leader={{ STORAGE_ZK_LEADER }}
+storage.zk.backup={{ STORAGE_ZK_BACKUP }}
+storage.dubbo.group={{ STORAGE_DUBBO_GROUP }}
+storage.dubbo.port={{ STORAGE_DUBBO_PORT }}

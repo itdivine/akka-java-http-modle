@@ -17,6 +17,7 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.japi.Option;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import cn.xiaoneng.kafka.NTKafkaProducer;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.actor.EVSShard;
 import cn.xiaoneng.skyeye.util.ActorNames;
@@ -36,6 +37,8 @@ import java.util.concurrent.CompletionStage;
 public class App {
 
     private ActorSystem system;
+
+    public static NTKafkaProducer ntKafkaProducer;
 
     public App(ActorSystem system) {
         this.system = system;
@@ -64,6 +67,9 @@ public class App {
 
         Config config = ConfigFactory.load();
         COMMON.read(config);
+
+        //初始化KAFKA生产者:计算引擎
+        ntKafkaProducer = new NTKafkaProducer(COMMON.KAFKA_BROKERS, COMMON.KAFKA_TOPIC, COMMON.systemName);
 
         ActorSystem system = ActorSystem.create(COMMON.systemName, config);
 

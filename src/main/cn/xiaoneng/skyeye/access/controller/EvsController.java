@@ -7,7 +7,7 @@ import akka.http.javadsl.unmarshalling.Unmarshaller;
 import cn.xiaoneng.skyeye.access.remote.Message;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
 import cn.xiaoneng.skyeye.util.ActorNames;
-import cn.xiaoneng.skyeye.util.base.BaseMessage;
+import cn.xiaoneng.skyeye.util.BaseMessage;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

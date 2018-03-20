@@ -1,0 +1,9 @@
+一、线上环境
+启动轨迹云集群：启动App.java  App1.java  使用配置文件ClusterApp.conf
+启动客户端ClientApp.java，这里调用轨迹云集群单例失败
+
+
+二、测试环境
+启动一个轨迹节点：
+    启动App2.java，没有创建单例
+    使用配置文件App2.conf
