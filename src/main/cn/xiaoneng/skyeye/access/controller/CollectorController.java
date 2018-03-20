@@ -17,9 +17,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by XuYang on 2018/3/19.
  *
- * 1.查询企业信息
- * 2.修改企业信息
- * 3.删除企业信息
+ * 1.查询信息
+ * 2.修改信息
  */
 public class CollectorController extends BaseController {
 

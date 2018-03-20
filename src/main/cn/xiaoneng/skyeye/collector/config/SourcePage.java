@@ -140,7 +140,7 @@ public class SourcePage {
         try {
 
             String url = COMMON.referer_url.replace("[eqid]", _eqidValue);
-            String info = HttpSender.getInfos(url);
+            String info = HttpSender.getInfos(url, null);
 
             if (Statics.isNullOrEmpty(info))
                 return;

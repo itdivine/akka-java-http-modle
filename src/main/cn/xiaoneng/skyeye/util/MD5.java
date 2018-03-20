@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.collector.util;
+package cn.xiaoneng.skyeye.util;
 
 
 import java.security.MessageDigest;

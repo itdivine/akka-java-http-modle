@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * Created by liangyongheng on 2017/4/24 14:48.
@@ -14,7 +15,12 @@ public class HttpSender {
 
     protected final static org.slf4j.Logger log = LoggerFactory.getLogger(HttpSender.class);
 
-    public static String getInfos(String query){
+    public static String getInfos(String uri, Map<String,String> headers){
+
+        if(uri==null || uri.isEmpty()) {
+            log.info("HttpSender query is Empty");
+            return null;
+        }
 
         String infoStr = null;
         InputStream fis = null;
@@ -23,13 +29,20 @@ public class HttpSender {
         long startt = System.currentTimeMillis();
 
         try {
-            URL url = new URL(query);
+            URL url = new URL(uri);
 
-            log.debug("getInfos: " + query);
+            log.info("getInfos: " + url);
 
             httpConn = (HttpURLConnection) url.openConnection();
             httpConn.setRequestProperty("User-agent", "MSIE8.0");
             httpConn.setRequestMethod("GET");
+
+            if(headers != null) {
+                for(Map.Entry<String,String> entry:headers.entrySet()) {
+                    httpConn.setRequestProperty(entry.getKey(),entry.getValue());
+                }
+            }
+
             httpConn.setReadTimeout(5000);
             httpConn.setConnectTimeout(5000);
             httpConn.setDoOutput(true);
@@ -40,22 +53,22 @@ public class HttpSender {
 
                 infoStr = Stream2String(fis, "utf-8");//通过http获得的没有经过校验的串
 
-                log.debug("getInfos success." + infoStr);
+                log.warn("getInfos success." + infoStr);
             }
 
         } catch (Exception e) {
-            log.error("Exception :" + e.toString() + " url= " + query);
+            log.warn("Exception :" + e.toString());
             StackTraceElement[] er = e.getStackTrace();
             for (int i = 0; i < er.length; i++) {
-                log.warn(er[i].toString());
+                log.info(er[i].toString());
             }
         } finally {
             if (httpConn != null)
                 httpConn.disconnect();
             long stopt = System.currentTimeMillis();
             long span = stopt - startt;
-            if(span > 5000)
-                log.warn("HttpSender send http spans " + span + "ms  url= " + query);
+            if(span > 1000)
+                log.warn("HttpSender send http spans " + span + "ms");
         }
         return infoStr;
     }

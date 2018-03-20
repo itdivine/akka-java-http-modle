@@ -20,6 +20,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>cn.xiaoneng</groupId>
+            <artifactId>nt-useragent</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.sclasen</groupId>
             <artifactId>akka-zk-cluster-seed_2.12</artifactId>
             <version>0.1.10</version>

@@ -1,8 +1,6 @@
 package cn.xiaoneng.skyeye.util;
 
 
-import cn.xiaoneng.skyeye.collector.util.MD5;
-
 public class HQToken {
 	
 	private static final String key= "eduxiaoneng";

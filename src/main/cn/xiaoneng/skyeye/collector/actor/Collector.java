@@ -12,12 +12,14 @@ import akka.persistence.RecoveryCompleted;
 import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
 import akka.routing.FromConfig;
+import akka.routing.SmallestMailboxPool;
 import cn.xiaoneng.skyeye.collector.model.CollectorModel;
 //import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
+import cn.xiaoneng.skyeye.collector.service.CollectorCopy;
+import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * 采集器
@@ -38,11 +40,9 @@ public class Collector extends AbstractPersistentActor {
         model = new CollectorModel(siteId, status);
         saveSnapshot(model);
 //        this.model.siteId = getContext().getParent().path().name();
-//        ActorRef handler = getContext().actorOf(new SmallestMailboxPool(3).props(Props.createEVS(CollectorHandler.class)), "handler");
-
-        // 不能删除
-//        ActorRef handler = getContext().actorOf(FromConfig.getInstance().props(Props.create(CollectorHandler.class, status)), "handler");
-        //getContext().actorOf(Props.create(CollectorCopy.class), "copy");
+        getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(CollectorHandler.class, model)), ActorNames.COLLECTOR_Handler);
+//        getContext().actorOf(FromConfig.getInstance().props(Props.create(CollectorHandler.class, model)), ActorNames.COLLECTOR_Handler);
+        getContext().actorOf(Props.create(CollectorCopy.class), ActorNames.CollectorCopy);
     }
 
     @Override

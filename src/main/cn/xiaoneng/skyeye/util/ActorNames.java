@@ -7,6 +7,7 @@ package cn.xiaoneng.skyeye.util;
 public class ActorNames {
 
 
+    public static final String SLASH = "/";
     /**
      * 轨迹云
      */
@@ -42,6 +43,7 @@ public class ActorNames {
      * 采集器
      */
     public static final String COLLECTOR = "collector";
+    public static final String COLLECTOR_Handler = "handler";
 
 
     /**
@@ -190,4 +192,8 @@ public class ActorNames {
      */
     public static final String AUTH = "auth";
 
+    /**
+     * 采集器副本
+     */
+    public static final String CollectorCopy = "copy";
 }
