@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class BodySpaceManager extends AbstractActor {
 
-    protected final static Logger log = LoggerFactory.getLogger(BodySpaceManager.class);
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
     private static Monitor monitor = MonitorCenter.getMonitor(Node.BodySpaceManager);
 
 
@@ -50,7 +50,7 @@ public class BodySpaceManager extends AbstractActor {
 
         super.preStart();
 
-        log.debug("BodySpaceManager init success, path = " + getSelf().path());
+        log.info("BodySpaceManager init success, path = " + getSelf().path());
     }
 
     /**
@@ -63,17 +63,15 @@ public class BodySpaceManager extends AbstractActor {
         for (String spaceName : bodySpaceNames) {
 
             BodySpaceModel model = new BodySpaceModel(null, spaceName, 0);
-
-            ActorRef bodySpace = getContext().actorOf(Props.create(BodySpace.class, model), spaceName);
-
+            getContext().actorOf(Props.create(BodySpace.class, model), spaceName);
             fieldSet.add(spaceName);
 
-            log.debug("init " + spaceName + "BodySpace success! path: " + bodySpace.path());
+            log.debug("init " + spaceName + "BodySpace success! path: " + spaceName);
         }
-        BodySpaceFieldMsg fieldMsg = new BodySpaceFieldMsg(fieldSet);
 
         //通知采集器更新字段列表
-        this.getContext().system().eventStream().publish(fieldMsg);
+        BodySpaceFieldMsg fieldMsg = new BodySpaceFieldMsg(fieldSet);
+        getContext().system().eventStream().publish(fieldMsg);
     }
 
     @Override

@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.cluster.sharding.ClusterSharding;
 import cn.xiaoneng.skyeye.bodyspace.message.*;
 import cn.xiaoneng.skyeye.bodyspace.model.BodyNodeModel;
 import cn.xiaoneng.skyeye.bodyspace.model.BodySpaceModel;
@@ -29,21 +30,19 @@ import java.util.Set;
  */
 public class BodySpace extends AbstractActor {
 
-    protected final static Logger log = LoggerFactory.getLogger(BodySpace.class);
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
     private static Monitor monitor = MonitorCenter.getMonitor(Node.BodySpace);
 
     private ActorRef serviceActor;
     private ActorRef mediator;
     private BodySpaceModel model;
+    private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.BodyNode);
 
     public BodySpace(BodySpaceModel model) {
-
         this.model = model;
     }
 
-    public BodySpace() {
-
-    }
+    public BodySpace() {}
 
     @Override
     public void preStart() throws Exception {
@@ -52,7 +51,7 @@ public class BodySpace extends AbstractActor {
         mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), "NSkyEye", getSelf()), getSelf());
 
-        log.debug(getSelf().path().toStringWithoutAddress());
+        log.info(getSelf().path().toStringWithoutAddress() + " " + model);
 
         serviceActor = getContext().actorOf(Props.create(BodyNodeServiceActor.class), "service");
     }
@@ -117,7 +116,9 @@ public class BodySpace extends AbstractActor {
 
                 BodyNodeCreateMsg msg = (BodyNodeCreateMsg) message;
 
-                if (getContext().child(msg.getId()).isEmpty()) {
+                shardRegion.tell(msg, getSender());
+
+                /*if (getContext().child(msg.getId()).isEmpty()) {
                     ActorRef bodyNode;
 
                     if (msg.getSpaceName().equals(ActorNames.NT_BODYSPACE)) {
@@ -125,23 +126,25 @@ public class BodySpace extends AbstractActor {
                     } else if (msg.getSpaceName().equals(ActorNames.COOKIE_BODYSPACE)) {
                         bodyNode = getContext().actorOf(Props.create(CookieBodyNode.class), msg.getId());
                     } else {
+//                        shardRegion.tell(bodyNodeModel, getSelf());
                         bodyNode = getContext().actorOf(Props.create(BodyNode.class), msg.getId());
                     }
                     bodyNode.tell(msg, getSender());
 
                 } else {
                     getContext().actorSelection(getSelf().path() + "/" + msg.getId()).tell(msg, getSender());
-                }
+                }*/
 
                 monitor.newWriteTime("BodyNodeCreateMsg", System.currentTimeMillis()-start, true);
 
             } else if (message instanceof CreateNodeFromDB) {
 
-                if (getContext().child(((CreateNodeFromDB) message).getNt_id()).isEmpty()){
+                shardRegion.tell(message, getSender());
+                /*if (getContext().child(((CreateNodeFromDB) message).getNt_id()).isEmpty()){
                     getContext().actorOf(Props.create(NTBodyNode.class), ((CreateNodeFromDB) message).getNt_id()).tell(message, getSender());
                 } else {
                     getContext().actorSelection(((CreateNodeFromDB) message).getNt_id()).tell(message, getSender());
-                }
+                }*/
 
                 monitor.newWriteTime("CreateNodeFromDB", System.currentTimeMillis()-start, true);
             }
@@ -166,9 +169,7 @@ public class BodySpace extends AbstractActor {
 
         if (getContext().child(message.getNt_id()).isEmpty()) {
 
-            BodyNodeModel pvModel = createModel(message);
-
-            BodyNodeModel neo4jModel;
+            BodyNodeModel bodyNodeModel = createModel(message);
 
             Iterator<String> iterator = getSelf().path().getElements().iterator();
 
@@ -184,17 +185,18 @@ public class BodySpace extends AbstractActor {
 
             map.put("site_id", site_id);
 
-            map.put("nt_id", pvModel.getNt_id());
+            map.put("nt_id", bodyNodeModel.getNt_id());
 
-            neo4jModel = Neo4jDataAccess.getBodyNodeModel(label, map);
+            BodyNodeModel neo4jModel = Neo4jDataAccess.getBodyNodeModel(label, map);
 
             ActorRef bodyNode = null;
 
             if (neo4jModel == null) {
 
-                bodyNode = getContext().actorOf(Props.create(BodyNode.class, pvModel), message.getNt_id());
+//                shardRegion.tell(bodyNodeModel, getSelf());
+                bodyNode = getContext().actorOf(Props.create(BodyNode.class, bodyNodeModel), message.getNt_id());
 
-                getSender().tell(createPVResultMsg(pvModel, message.getMsgId()), getSelf());
+                getSender().tell(createPVResultMsg(bodyNodeModel, message.getMsgId()), getSelf());
 
             }
 
@@ -214,6 +216,8 @@ public class BodySpace extends AbstractActor {
 
         BodyNodeModel result = new BodyNodeModel();
 
+        result.setBodySpace(message.getSpaceName());
+
         result.setId(message.getId());
 
         result.setNt_id(message.getNt_id());
@@ -228,6 +232,8 @@ public class BodySpace extends AbstractActor {
     private BodyNodeModel mergeModel(BodyNodeModel pvModel, BodyNodeModel neo4jModel) {
 
         BodyNodeModel newModel = new BodyNodeModel();
+
+        newModel.setBodySpace(pvModel.getBodySpace());
 
         newModel.setNt_id(pvModel.getNt_id());
 
@@ -281,6 +287,8 @@ public class BodySpace extends AbstractActor {
 
         BodyNodeModel nodeModel = new BodyNodeModel();
 
+        nodeModel.setBodySpace(spaceName);
+
         nodeModel.setNt_id(newModel.getNt_id());
 
         nodeModel.setId(newModel.getId());
@@ -314,6 +322,8 @@ public class BodySpace extends AbstractActor {
         msg.setSpaceName(spaceName);
 
         BodyNodeModel nodeModel = new BodyNodeModel();
+
+        nodeModel.setBodySpace(spaceName);
 
         nodeModel.setNt_id(newModel.getNt_id());
 

@@ -30,13 +30,13 @@ public class CollectorController extends BaseController {
                         path(PathMatchers.segment("enterprises").slash(PathMatchers.segment()).slash(ActorNames.COLLECTOR), siteId ->
                                 route(
                                         get(() -> {
-                                            String topic = siteId + PathMatchers.slash() + ActorNames.COLLECTOR;
+                                            String topic = siteId + ActorNames.SLASH + ActorNames.COLLECTOR;
                                             log.debug("topic = " + topic);
                                             return complete(get(topic, new Get(siteId)));
                                         }),
 
                                         put(() -> entity(Unmarshaller.entityToString(), data -> {
-                                            String topic = siteId + PathMatchers.slash() + ActorNames.COLLECTOR;
+                                            String topic = siteId + ActorNames.SLASH + ActorNames.COLLECTOR;
                                             CollectorModel model = JSON.parseObject(data, CollectorModel.class);
                                             return complete(update(topic, new Update(model)));
                                         }))

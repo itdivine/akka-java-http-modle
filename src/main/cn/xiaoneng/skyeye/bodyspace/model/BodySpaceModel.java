@@ -19,11 +19,8 @@ public class BodySpaceModel {
     }
 
     public BodySpaceModel(String id, String name, int status) {
-
         this.id = id;
-
         this.name = name;
-
         this.status = status;
     }
 
@@ -51,4 +48,12 @@ public class BodySpaceModel {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return "BodySpaceModel{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", status=" + status +
+                '}';
+    }
 }

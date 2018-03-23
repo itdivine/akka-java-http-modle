@@ -2,6 +2,8 @@ package cn.xiaoneng.skyeye.track.actor;
 
 import akka.actor.*;
 import akka.routing.FromConfig;
+import akka.routing.SmallestMailboxPool;
+import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
@@ -51,7 +53,7 @@ public class TrackerManager extends AbstractActor {
 
         log.info("path " + getSelf().path());
 
-        reportPVProcessor = getContext().actorOf(FromConfig.getInstance().props(Props.create(TrackReportPVProcessor.class)), ActorNames.TrackReportPVProcessor);
+        reportPVProcessor = getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(TrackReportPVProcessor.class)), ActorNames.TrackReportPVProcessor);
 
         // 创建NT跟踪器
         NTTrackInfo ntTrackInfo = new NTTrackInfo(ActorNames.NT_BODYSPACE, 1);

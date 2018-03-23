@@ -18,7 +18,7 @@
         <akka.version>2.5.3</akka.version>
         <slf4j.version>1.7.7</slf4j.version>
         <logback.version>1.1.2</logback.version>
-        <storage.version>2.0.0.7_release</storage.version>
+        <storage.version>2.0.1.8_release</storage.version>
     </properties>
 
     <dependencies>
@@ -26,7 +26,13 @@
             <groupId>com.sclasen</groupId>
             <artifactId>akka-zk-cluster-seed_2.12</artifactId>
             <version>0.1.10</version>
-        </dependency>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.xiaoneng.nt</groupId>
+                    <artifactId>log-sdk</artifactId>
+                </exclusion>
+            </exclusions>
+    </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -87,62 +93,6 @@
             <version>4.3.11.RELEASE</version>
         </dependency>
 
-
-
-        <!-- LOGGING begin -->
-        <!-- slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <!-- logback -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
-
-        <!-- 代码直接调用log4j会被桥接到slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- 代码直接调用common-logging会被桥接到slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- 代码直接调用java.util.logging会被桥接到slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
-        </dependency>
-
-        <!-- log4jdbc -->
-        <dependency>
-            <groupId>org.bgee.log4jdbc-log4j2</groupId>
-            <artifactId>log4jdbc-log4j2-jdbc4</artifactId>
-            <version>1.15</version>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- LOGGING end -->
-
         <!--仅供快照、事件源存储恢复使用-->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
@@ -163,11 +113,6 @@
             <version>1.6.6-rev002</version>
         </dependency>
         <dependency>
-            <groupId>cn.xiaoneng.nt</groupId>
-            <artifactId>log-sdk</artifactId>
-            <version>1.1.4</version>
-        </dependency>
-        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.7.0</version>
@@ -185,158 +130,34 @@
         <dependency>
             <groupId>cn.xiaoneng.nskybean</groupId>
             <artifactId>nskybean</artifactId>
-            <version>1.0.6</version>
+            <version>1.0.7</version>
         </dependency>
         <dependency>
             <groupId>cn.xiaoneng</groupId>
             <artifactId>nt-useragent</artifactId>
             <version>1.0</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>cn.xiaoneng.storage</groupId>-->
-            <!--<artifactId>StorageConsumer</artifactId>-->
-            <!--<version>${storage.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>cn.xiaoneng.storage</groupId>
+            <artifactId>StorageConsumer</artifactId>
+            <version>${storage.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.xiaoneng.nskybean</groupId>
+                    <artifactId>nskybean</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>cn.xiaoneng.nt</groupId>
+            <artifactId>log-sdk</artifactId>
+            <version>1.1.4</version>
+        </dependency>
     </dependencies>
-    <build>
 
-        <!--<resources>-->
-        <!--<resource>-->
-        <!--<directory>src/main/resources</directory>-->
-        <!--<filtering>true</filtering>-->
-        <!--<includes>-->
-        <!--<include>**/*.*</include>-->
-        <!--</includes>-->
-        <!--&lt;!&ndash; 排除  &ndash;&gt;-->
-        <!--<excludes>-->
-        <!--<exclude>conf/akka_system.properties</exclude>-->
-        <!--</excludes>-->
-
-        <!--</resource>-->
-
-        <!--</resources>-->
-
-        <plugins>
-            <!-- 必须要，否则不能混合编译交叉引用文件 -->
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- 跳过单元测试 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-
-            <!-- 将依赖包拷贝至target/lib下 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>target/lib</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- 导出jar包，注意文件开头处的<packaging>标签须为“jar” -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <classesDirectory>target/classes/</classesDirectory>
-                    <excludes>
-                        <!-- 打jar包时，排除配置文件 -->
-                        <exclude>akka_system.properties</exclude>
-                        <exclude>*.conf</exclude>
-                    </excludes>
-                    <includes>
-                        <!-- 打jar包时，只打包class文件 -->
-                        <include>**/*.class</include>
-                        <include>db.properties</include>
-                        <include>**/*.xml</include>
-                        <include>17monipdb.dat</include>
-                    </includes>
-                    <archive>
-                        <manifest>
-                            <mainClass>cn.xiaoneng.skyeye.App2</mainClass>
-                            <!-- 打包时manifest.mf不记录时间戳 -->
-                            <useUniqueVersions>flase</useUniqueVersions>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                        <manifestEntries>
-                            <!--在Class-Path下添加配置文件的路径-->
-                            <Class-Path>conf/</Class-Path>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <!-- 将配置文件拷贝至conf/下，注意main方法加载时读取配置文件 -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.5</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>target/conf</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>
 
-
-        <!--<dependency>-->
-        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--<artifactId>jackson-annotations</artifactId>-->
-        <!--<version>2.9.0</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>cn.xiaoneng</groupId>-->
-        <!--<artifactId>akka-java-http-modle</artifactId>-->
-        <!--<version>1.0-SNAPSHOT</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>com.typesafe.akka</groupId>-->
-        <!--<artifactId>akka-http-spray-json_2.12</artifactId>-->
-        <!--<version>10.0.9</version>-->
-        <!--</dependency>-->

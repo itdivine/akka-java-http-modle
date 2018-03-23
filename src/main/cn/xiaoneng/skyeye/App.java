@@ -18,6 +18,8 @@ import akka.japi.Option;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
 import cn.xiaoneng.kafka.NTKafkaProducer;
+import cn.xiaoneng.skyeye.bodyspace.actor.BodyNode;
+import cn.xiaoneng.skyeye.bodyspace.actor.BodyNodeShard;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.actor.EVSShard;
 import cn.xiaoneng.skyeye.util.ActorNames;
@@ -107,5 +109,12 @@ public class App {
                         Props.create(EVS.class),
                         settings,
                         new EVSShard());
+
+        ClusterSharding.get(system)
+                .start(
+                        ActorNames.BodyNode,
+                        Props.create(BodyNode.class),
+                        settings,
+                        new BodyNodeShard());
     }
 }

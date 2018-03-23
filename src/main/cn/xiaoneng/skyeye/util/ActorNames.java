@@ -51,6 +51,11 @@ public class ActorNames {
      */
     public static final String BODY = "Body";
 
+    /**
+     * 主体空间
+     */
+    public static final String BodyNode = "body_node";
+
 
     /**
      * IMEI主体空间

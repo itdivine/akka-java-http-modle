@@ -2,11 +2,14 @@ package cn.xiaoneng.skyeye.bodyspace.service;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import cn.xiaoneng.skyeye.bodyspace.actor.BodySpace;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsg;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodesGatherContainer;
 import cn.xiaoneng.skyeye.bodyspace.message.ListInfo;
 import cn.xiaoneng.skyeye.util.Operation;
 import com.alibaba.fastjson.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,10 +22,16 @@ import java.util.Map;
  * Created by liangyongheng on 2016/8/1 22:33.
  */
 public class BodyNodeServiceActor extends AbstractActor {
-
+    protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
     private List<ActorRef> actorList = new ArrayList<ActorRef>();
 
     private Map<String, BodyNodesGatherContainer> fulfillmentMap = new HashMap<String, BodyNodesGatherContainer>();
+
+    @Override
+    public void preStart() throws Exception {
+        super.preStart();
+        log.info(getSelf().path().toStringWithoutAddress());
+    }
 
     @Override
     public AbstractActor.Receive createReceive() {

@@ -5,6 +5,8 @@ import cn.xiaoneng.skyeye.bodyspace.actor.BodySpaceManager;
 import cn.xiaoneng.skyeye.bodyspace.message.BodySpaceMsg;
 import cn.xiaoneng.skyeye.util.HTTPCommand;
 import cn.xiaoneng.skyeye.util.Operation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -12,10 +14,12 @@ import cn.xiaoneng.skyeye.util.Operation;
  */
 public class BodySpaceServiceActor extends AbstractActor {
 
+    protected final static Logger log = LoggerFactory.getLogger(BodySpaceServiceActor.class);
+
     @Override
     public void preStart() throws Exception {
         super.preStart();
-//        System.out.println(this.getSelf().path());
+        log.info(getSelf().path().toString());
     }
 
     @Override

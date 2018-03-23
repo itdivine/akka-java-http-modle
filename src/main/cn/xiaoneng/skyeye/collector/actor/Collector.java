@@ -13,6 +13,7 @@ import akka.persistence.SaveSnapshotSuccess;
 import akka.persistence.SnapshotOffer;
 import akka.routing.FromConfig;
 import akka.routing.SmallestMailboxPool;
+import cn.xiaoneng.skyeye.access.Message.CollectorProtocal;
 import cn.xiaoneng.skyeye.collector.model.CollectorModel;
 //import cn.xiaoneng.skyeye.collector.service.CollectorHandler;
 import cn.xiaoneng.skyeye.collector.service.CollectorCopy;
@@ -31,6 +32,7 @@ public class Collector extends AbstractPersistentActor {
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
 
     private CollectorModel model;
+    private ActorRef handlerRoute;
 
 //    private static Monitor monitor = MonitorCenter.getMonitor(Node.Collector);
 
@@ -40,7 +42,7 @@ public class Collector extends AbstractPersistentActor {
         model = new CollectorModel(siteId, status);
         saveSnapshot(model);
 //        this.model.siteId = getContext().getParent().path().name();
-        getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(CollectorHandler.class, model)), ActorNames.COLLECTOR_Handler);
+        handlerRoute = getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(CollectorHandler.class, model)), ActorNames.COLLECTOR_Handler);
 //        getContext().actorOf(FromConfig.getInstance().props(Props.create(CollectorHandler.class, model)), ActorNames.COLLECTOR_Handler);
         getContext().actorOf(Props.create(CollectorCopy.class), ActorNames.CollectorCopy);
     }
@@ -48,12 +50,12 @@ public class Collector extends AbstractPersistentActor {
     @Override
     public void preStart() throws Exception {
         super.preStart();
-        String topic = model.getSiteId() + PathMatchers.slash() + ActorNames.COLLECTOR; // kf_1003/collector
+        String topic = model.getSiteId() + ActorNames.SLASH + ActorNames.COLLECTOR; // kf_1003/collector
         ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(topic, ActorNames.NSkyEye, getSelf()), getSelf());
 
         // akka://NSkyEye/system/sharding/EVS/18/kf_1003/collector
-        log.info("collector init success! path:" + getSelf().path());
+        log.info("collector init success! path = " + getSelf().path() + " topic = " + topic);
     }
 
     @Override
@@ -73,12 +75,17 @@ public class Collector extends AbstractPersistentActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(CollectorProtocal.Report.class, this::report)
                 .match(Get.class, msg -> get())
                 .match(Update.class, this::update)
                 .match(DistributedPubSubMediator.SubscribeAck.class, msg -> log.info("Subscribe Success"))
                 .match(SaveSnapshotSuccess.class, msg -> log.info("SaveSnapshotSuccess: " + model))
                 .matchAny(msg -> log.info("unhandled: " + msg))
                 .build();
+    }
+
+    private void report(CollectorProtocal.Report report) {
+        handlerRoute.forward(report, getContext());
     }
 
     private void update(Update msg) {

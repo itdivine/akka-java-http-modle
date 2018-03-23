@@ -1,4 +1,4 @@
-package cn.xiaoneng.skyeye.db;
+package cn.xiaoneng.skyeye.db.sample;
 
 import org.neo4j.driver.v1.*;
 import org.slf4j.Logger;

@@ -42,6 +42,7 @@ public class NTMessageRouter extends AbstractActor {
 
 //        getContext().setReceiveTimeout(Duration.createEVS(10, TimeUnit.SECONDS));
         super.preStart();
+        log.info(getSelf().path().toString());
     }
 
     @Override

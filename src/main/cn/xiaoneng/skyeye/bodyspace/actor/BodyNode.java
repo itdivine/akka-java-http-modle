@@ -3,16 +3,14 @@ package cn.xiaoneng.skyeye.bodyspace.actor;
 import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
-import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeCreateMsg;
-import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsg;
-import cn.xiaoneng.skyeye.bodyspace.message.PVDataStatus;
-import cn.xiaoneng.skyeye.bodyspace.message.PVResultMsg;
+import cn.xiaoneng.skyeye.bodyspace.message.*;
 import cn.xiaoneng.skyeye.bodyspace.model.BodyNodeModel;
 import cn.xiaoneng.skyeye.bodyspace.model.NTBodyNodeModel;
 import cn.xiaoneng.skyeye.db.Neo4jDataAccess;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
 import cn.xiaoneng.skyeye.monitor.Node;
+import cn.xiaoneng.skyeye.track.message.GetUserTrackMessage;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import cn.xiaoneng.skyeye.util.HTTPCommand;
 import cn.xiaoneng.skyeye.util.Statics;
@@ -25,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -37,19 +36,19 @@ public class BodyNode extends AbstractActor {
     protected final static Logger log = LoggerFactory.getLogger(BodyNode.class);
     private static Monitor monitor = MonitorCenter.getMonitor(Node.BodyNode);
 
-    BodyNodeModel model = null;
+    private BodyNodeModel model = null;
+
 
     private ActorRef mediator;
 
+    //TODO CookieNode使用 临时解决，需要放入到model中，并让存储更新轨迹bean包
+    private String _loginId;
 
     public BodyNode(BodyNodeModel model) {
         this.model = model;
     }
 
     public BodyNode() {
-
-
-
     }
 
     @Override
@@ -74,7 +73,10 @@ public class BodyNode extends AbstractActor {
         try {
             log.debug(getSelf().path() + " receive message :" + msg.toString());
 
-            if (msg instanceof BodyNodeMsg) {
+            if (msg instanceof BodyNodeModel) {
+                model = (BodyNodeModel) msg;
+
+            } else if (msg instanceof BodyNodeMsg) {
 
                 BodyNodeMsg message = (BodyNodeMsg) msg;
 
@@ -83,36 +85,15 @@ public class BodyNode extends AbstractActor {
 //                getSender().tell(createPVResultMsg(newSet, message.getMsgId()), getSelf());
                 doGet(message);
 
-                monitor.newWriteTime("BodyNodeMsg", System.currentTimeMillis()-start, true);
+                monitor.newWriteTime("BodyNodeMsg", System.currentTimeMillis() - start, true);
 
-            }
-//            else if (msg instanceof NTCommand) {
-//
-//                NTCommand message = (NTCommand) msg;
-//
-//                BodyNodeMsg rtnMsg = createBodyNodeMsg();
-//
-//                rtnMsg.setRelatedNode(message.isRelatedNode());
-//
-//                getSender().tell(rtnMsg, getSelf());
-//
-//            }
-//            else if (msg instanceof IdCommand) {
-//
-//                if (model.getId().equals(((IdCommand) msg).getId())) {
-//
-//                    BodyNodeMsg rtnMsg = createBodyNodeMsg();
-//
-//                    getSender().tell(rtnMsg, getSelf());
-//                }
-//            }
-            else if (msg instanceof BodyNodeCreateMsg) {
+            } else if (msg instanceof BodyNodeCreateMsg) {
 
                 BodyNodeCreateMsg message = (BodyNodeCreateMsg) msg;
 
                 onCreateBodyNode(message);
 
-                monitor.newWriteTime("BodyNodeCreateMsg", System.currentTimeMillis()-start, true);
+                monitor.newWriteTime("BodyNodeCreateMsg", System.currentTimeMillis() - start, true);
 
             } else if (msg instanceof String) {
 
@@ -122,14 +103,83 @@ public class BodyNode extends AbstractActor {
 
                 if (HTTPCommand.GET.equals(method)) {
 
-                    String rtnStr = "{\"body\" : {\"id\" : \"" + this.model.getId() + "\",\"nt\" : \"" + this.model.getNt_id() + "\"," +
-                            "\"createtime\" : \"" + this.model.getCreateTime() + "\", \"lastvisittime\" : \"" + this.model.getLastVisitTime() + "\"}," +
-                            "\"status\" : 200}";
+//                    String rtnStr = "{\"body\" : {\"id\" : \"" + this.model.getId() + "\",\"nt\" : \"" + this.model.getNt_id() + "\"," +
+//                            "\"createtime\" : \"" + this.model.getCreateTime() + "\", \"lastvisittime\" : \"" + this.model.getLastVisitTime() + "\"}," +
+//                            "\"status\" : 200}";
+                    String rtnStr = "{\"body\" : " + JSON.toJSONString(model) + ", \"status\" : 200}";
 
                     getSender().tell(rtnStr, getSelf());
                 }
 
-                monitor.newWriteTime("HTTP.GET", System.currentTimeMillis()-start, true);
+                monitor.newWriteTime("HTTP.GET", System.currentTimeMillis() - start, true);
+
+            } else if (msg instanceof NTRelatedMsg) {
+                //CookieNode
+                if (model.getBodySpace().equals(ActorNames.COOKIE_BODYSPACE)) {
+                    NTRelatedMsg ntRelatedMsg = (NTRelatedMsg) msg;
+                    setRelateByNt(ntRelatedMsg.getNt_id(), ntRelatedMsg.getLoginId());
+                    monitor.newWriteTime("NTRelatedMsg", System.currentTimeMillis() - start, true);
+
+                } else if (model.getBodySpace().equals(ActorNames.NT_BODYSPACE)) {
+                    log.debug("receive NTRelatedMsg " + (NTRelatedMsg) msg);
+                    NTRelatedMsg ntRelatedMsg = (NTRelatedMsg) msg;
+                    //如果当前nt对应login为空,则创建login,并关联nt账号
+                    NTBodyNodeModel _model = (NTBodyNodeModel) model;
+                    if (_model.getLoginId() == null) {
+                        _model.setLoginId(ntRelatedMsg.getLoginId());
+                        _model.addRelateNt_id(ntRelatedMsg.getNt_id());
+                    } else {
+                        //如果login账号相同则进行关联，否则不关联。
+                        if (_model.getLoginId().equals(ntRelatedMsg.getLoginId()) && ntRelatedMsg.getNt_id() != null) {
+                            _model.addRelateNt_id(ntRelatedMsg.getNt_id());
+                        }
+                    }
+                    saveRelation(_model);
+                    monitor.newWriteTime("NTRelatedMsg", System.currentTimeMillis() - start, true);
+                }
+            } else if (msg instanceof GetUserTrackMessage) {
+
+                if (model.getBodySpace().equals(ActorNames.NT_BODYSPACE)) {
+                    NTBodyNodeModel _model = (NTBodyNodeModel) model;
+                    log.debug("receive GetUserTrackMessage " + (GetUserTrackMessage)msg);
+
+                    //查询关联账号
+                    BodyNodeMsgMap rtnMsg = new BodyNodeMsgMap(((GetUserTrackMessage) msg).getMsgId());
+
+                    rtnMsg.setNt_id(_model.getId());
+                    rtnMsg.getAccountNumMap().putAll(_model.getAccountNumMap());
+                    rtnMsg.getRelatedNtSet().addAll(_model.getRelateNtSet());
+
+                    getSender().tell(rtnMsg, getSelf());
+
+                    monitor.newWriteTime("GetUserTrackMessage", System.currentTimeMillis()-start, true);
+
+                }
+            } else if(msg instanceof CreateNodeFromDB) {
+                // NTBodyNode
+                log.debug("receive CreateNodeFromDB " + (CreateNodeFromDB)msg);
+
+                String nt_id = ((CreateNodeFromDB) msg).getNt_id();
+                String msgId = (((CreateNodeFromDB) msg).getMessage()).getMsgId();
+                BodyNodeMsgMap rtnMsg = new BodyNodeMsgMap(msgId);
+                rtnMsg.setNt_id(nt_id);
+
+                model = getNodeFromDB(nt_id);
+                if(model==null) {
+                    getSender().tell(rtnMsg, getSelf());
+
+                    //TODO 销毁当前Actor
+
+                    monitor.newWriteTime("CreateNodeFromDB", System.currentTimeMillis()-start, true);
+                    return;
+
+                } else {
+                    NTBodyNodeModel _model = (NTBodyNodeModel) model;
+                    rtnMsg.getAccountNumMap().putAll(_model.getAccountNumMap());
+                    rtnMsg.getRelatedNtSet().addAll(_model.getRelateNtSet());
+                    getSender().tell(rtnMsg, getSelf());
+                    monitor.newWriteTime("CreateNodeFromDB", System.currentTimeMillis()-start, true);
+                }
             }
 
         } catch (Exception e) {
@@ -141,6 +191,71 @@ public class BodyNode extends AbstractActor {
             }
             getSender().tell("error!", getSelf());
         }
+    }
+
+    /**
+     * 保存nt节点间关系
+     */
+    private void saveRelation(NTBodyNodeModel _model) {
+
+        if (_model.getRelateNtSet() != null && !_model.getRelateNtSet().isEmpty()) {
+
+            for (String relationId : _model.getRelateNtSet()) {
+
+                HashMap<String, Object> relationMap = new HashMap<>();
+                relationMap.put("id1", _model.getId());
+                relationMap.put("id2", relationId);
+                relationMap.put("siteId", Statics.getSiteId(getSelf().path().elements().iterator()));
+
+                Neo4jDataAccess.setBodyBondRelation("nt", relationMap);
+            }
+        }
+    }
+
+    private void setRelateByNt(String newNt_id, String loginId) {
+
+//        System.out.println("------------------------------------------------loginId : " + loginId);
+
+        if (newNt_id == null || loginId == null) {
+            return;
+        } else {
+
+            String oldNt_id = this.model.getNt_id();
+
+//            if (newNt_id.equals(oldNt_id)) {
+//
+//                //通知ntactor创建loginid
+//                this.getContext().actorSelection("../../nt/" + oldNt_id).tell(new NTRelatedMsg(null, loginId), getSelf());
+//            } else {
+
+            //如果登陆ID相等，创建等价关系
+            if (_loginId != null && _loginId.equals(loginId)) {
+                //通知nt_actor创建nt之间等价关系
+                this.getContext().actorSelection("../../nt/" + oldNt_id).tell(new NTRelatedMsg(newNt_id, loginId), getSelf());
+                this.getContext().actorSelection("../../nt/" + newNt_id).tell(new NTRelatedMsg(oldNt_id, loginId), getSelf());
+            }
+            //如果登陆ID不相等，解绑cookie->旧nt的关系，保留cookie<-旧nt的关系，增加cookie和新nt的关系
+            {
+                removeRelation();
+
+                model.setNt_id(newNt_id);
+                saveRelation(ActorNames.COOKIE_BODYSPACE);
+
+            }
+
+//            }
+        }
+    }
+
+    private void removeRelation() {
+
+        HashMap<String, Object> map = new HashMap<>();
+
+        map.put("id1", model.getId());
+        map.put("id2", model.getNt_id());
+        map.put("siteId", model.getSiteId());
+        Neo4jDataAccess.deleteBodyBondRelation("cookie", map);
+//        Neo4jDataAccess_source.deleteBodyBondRelation("cookie", map);
 
     }
 
@@ -160,22 +275,162 @@ public class BodyNode extends AbstractActor {
 
     public void onCreateBodyNode(BodyNodeCreateMsg message) {
 
+        try {
+            if (message.getSpaceName().equals(ActorNames.NT_BODYSPACE)) {
+                createNTNode(message);
+            } else if (message.getSpaceName().equals(ActorNames.COOKIE_BODYSPACE)) {
+                createCookieNode(message);
+            } else {
+                createBodyNode(message);
+            }
+
+        } catch (Exception e) {
+
+            log.error("Exception " + e.getMessage());
+            StackTraceElement[] er = e.getStackTrace();
+            for (int i = 0; i < er.length; i++) {
+                log.info(er[i].toString());
+            }
+        }
+    }
+
+    private void createCookieNode(BodyNodeCreateMsg message) {
+        //cookie登陆新的login账号，则绑定新的login账号，和旧的login账号解绑
+//                if(model!=null && !model.getNt_id().equals(((BodyNodeCreateMsg) message).getNt_id())) {
+//                    model.setNt_id(((BodyNodeCreateMsg) message).getNt_id());
+//                }
+
+        createBodyNode((BodyNodeCreateMsg) message);
+        _loginId = ((BodyNodeCreateMsg) message).getLoginId();
+//        monitor.newWriteTime("BodyNodeCreateMsg", System.currentTimeMillis() - start, true);
+
+    }
+
+    private void createNTNode(BodyNodeCreateMsg message) {
+        BodyNodeCreateMsg msg = (BodyNodeCreateMsg) message;
+        String nt_id = msg.getNt_id();
+        String msg_loginId = msg.getLoginId();
+        Map<String, String> accountNumMap = msg.getAccountNumMap();
+
         if (this.model == null) {
 
+            // DB中查找节点
+            NTBodyNodeModel dbModel = getNodeFromDB(nt_id);
+
+            if (dbModel == null) {
+                this.model = new NTBodyNodeModel();
+                model.setCreateTime(msg.getMsgtime());
+                model.setId(msg.getId());
+                model.setNt_id(nt_id);
+                ((NTBodyNodeModel) model).setLoginId(msg_loginId);
+                ((NTBodyNodeModel) model).setAccountNumMap(accountNumMap);
+                model.setSiteId(Statics.getSiteId(getSelf().path().elements().iterator()));
+
+                if (accountNumMap != null) {
+                    ((NTBodyNodeModel) model).getCookieSet().add(accountNumMap.get("cookie"));
+                }
+
+                saveNode();
+
+            } else {
+                model = dbModel;
+            }
+
+        } else {
+
+            merge((NTBodyNodeModel) model, msg_loginId, accountNumMap);
+        }
+
+        PVResultMsg resutlMsg = new PVResultMsg();
+        resutlMsg.setBodyNode(model);
+        resutlMsg.setMsgId(msg.getMsgId());
+        resutlMsg.setSpaceName(msg.getSpaceName());
+        resutlMsg.setData_status(1);
+
+        getSender().tell(resutlMsg, getSelf());
+
+//        monitor.newWriteTime("BodyNodeCreateMsg", System.currentTimeMillis()-start, true);
+
+    }
+
+    private NTBodyNodeModel getNodeFromDB(String nt_id) {
+
+        NTBodyNodeModel model = null;
+
+        try {
+
+            String labs = ":Body:" + ActorNames.NT_BODYSPACE;
+            HashMap<String, Object> map = new HashMap();
+            map.put("siteId", Statics.getSiteId(getSelf().path().elements().iterator()));
+            map.put("id", nt_id);
+
+            model = Neo4jDataAccess.getNTBodyNodeModel(labs, map);
+            if (model != null)
+                log.debug(model.toString());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+
+        return model;
+    }
+
+    /**
+     * 保存节点信息
+     */
+    private void saveNode() {
+        HashMap<String, Object> map = new HashMap();
+
+        map.put("id", model.getId());
+        map.put("siteId", Statics.getSiteId(getSelf().path().elements().iterator()));
+        map.put("createTime", model.getCreateTime());
+        Neo4jDataAccess.setBodyNode("nt", map);
+    }
+
+    /**
+     * 内存model合并http请求中新增的数据
+     *
+     * @param model
+     * @param msg_loginId
+     * @param accountNumMap
+     * @return true：有新增(需要更新DB)   false：没有改变
+     */
+    private boolean merge(NTBodyNodeModel model, String msg_loginId, Map<String, String> accountNumMap) {
+
+        boolean ischange = false;
+
+        //保留有值的loginId
+        String model_loginId = model.getLoginId();
+
+        if (Statics.isNullOrEmpty(model_loginId) && !Statics.isNullOrEmpty(msg_loginId)) {
+            model.setLoginId(msg_loginId);
+            ischange = true;
+        }
+
+        if (model.getAccountNumMap() == null) {
+
+            model.setAccountNumMap(accountNumMap);
+        } else {
+            model.getAccountNumMap().putAll(accountNumMap);
+
+            model.getCookieSet().add(accountNumMap.get("cookie"));
+        }
+
+        return ischange;
+    }
+
+    private void createBodyNode(BodyNodeCreateMsg message) {
+        if (this.model == null) {
             this.model = new BodyNodeModel();
             this.model.setCreateTime(message.getMsgtime());
+            this.model.setBodySpace(message.getSpaceName());
             this.model.setNt_id(message.getNt_id());
             this.model.setId(message.getId());
             this.model.setSiteId(Statics.getSiteId(getSelf().path().elements().iterator()));
-
         }
         this.model.setLastVisitTime(message.getMsgtime());
 
-        saveNode(message.getSpaceName());
-        saveRelation(message.getSpaceName());
-
         PVResultMsg resutlMsg = new PVResultMsg();
-
         resutlMsg.setBodyNode(model);
         resutlMsg.setMsgId(message.getMsgId());
         resutlMsg.setSpaceName(message.getSpaceName());
@@ -183,40 +438,55 @@ public class BodyNode extends AbstractActor {
 
         getSender().tell(resutlMsg, getSelf());
 
-//        System.out.println("-------------------------"+ this.model.toString());
+        saveNode(message.getSpaceName());
+        saveRelation(message.getSpaceName());
     }
 
     private void saveNode(String spaceName) {
-        HashMap<String, Object> map = new HashMap();
-
-        map.put("id", this.model.getId());
-        map.put("createTime", this.model.getCreateTime());
-        map.put("siteId", this.model.getSiteId());
-        Neo4jDataAccess.setBodyNode(spaceName, map);
+        try {
+            HashMap<String, Object> map = new HashMap();
+            map.put("id", this.model.getId());
+            map.put("createTime", this.model.getCreateTime());
+            map.put("siteId", this.model.getSiteId());
+            Neo4jDataAccess.setBodyNode(spaceName, map);
+        } catch (Exception e) {
+            log.error("Exception " + e.getMessage());
+            StackTraceElement[] er = e.getStackTrace();
+            for (int i = 0; i < er.length; i++) {
+                log.info(er[i].toString());
+            }
+        }
     }
 
     public void saveRelation(String spaceName) {
 
-        String labs = ":Body:" + ActorNames.NT_BODYSPACE;
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("siteId", Statics.getSiteId(getSelf().path().elements().iterator()));
-        map.put("id", model.getNt_id());
+        try {
+            String labs = ":Body:" + ActorNames.NT_BODYSPACE;
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("siteId", Statics.getSiteId(getSelf().path().elements().iterator()));
+            map.put("id", model.getNt_id());
 
-        //No createTime , or else could not search the node.
-        NTBodyNodeModel ntModel = Neo4jDataAccess.getNTBodyNodeModel(labs, map);
+            //No createTime , or else could not search the node.
+            NTBodyNodeModel ntModel = Neo4jDataAccess.getNTBodyNodeModel(labs, map);
 
-        // TODO 如果不存在nt节点则先创建  这里有问题，并发时会创建多个
-        if (ntModel == null) {
-            map.put("createTime", this.model.getCreateTime());
-            Neo4jDataAccess.setBodyNode(ActorNames.NT_BODYSPACE, map);
+            // TODO 如果不存在nt节点则先创建  这里有问题，并发时会创建多个
+            if (ntModel == null) {
+                map.put("createTime", this.model.getCreateTime());
+                Neo4jDataAccess.setBodyNode(ActorNames.NT_BODYSPACE, map);
+            }
+
+            map.remove("id");
+            map.put("id1", model.getId());
+            map.put("id2", model.getNt_id());
+            Neo4jDataAccess.setBodyBondRelation(spaceName, map);
+
+        } catch (Exception e) {
+            log.error("Exception " + e.getMessage());
+            StackTraceElement[] er = e.getStackTrace();
+            for (int i = 0; i < er.length; i++) {
+                log.info(er[i].toString());
+            }
         }
-
-        map.remove("id");
-        map.put("id1", model.getId());
-        map.put("id2", model.getNt_id());
-        Neo4jDataAccess.setBodyBondRelation(spaceName, map);
-
-
     }
 
     private PVResultMsg createPVResultMsg(Set<String> newSet, String msgId) {
@@ -235,6 +505,7 @@ public class BodyNode extends AbstractActor {
 
         BodyNodeModel nodeModel = new BodyNodeModel();
 
+        nodeModel.setBodySpace(model.getBodySpace());
         nodeModel.setId(model.getId());
 
         nodeModel.setNt_id(model.getNt_id());

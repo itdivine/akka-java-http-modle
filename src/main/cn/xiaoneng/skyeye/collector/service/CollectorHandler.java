@@ -78,18 +78,18 @@ public class CollectorHandler extends AbstractActor {
 //        getContext().actorSelection("../../../../configs/*").tell(new ContainerStatusChangedMsg(), getSelf());
 
         // 不再用路径  kf_1003/handler
-        String topic = model.getSiteId() + ActorNames.SLASH + ActorNames.COLLECTOR_Handler;
-        DistributedPubSub.get(this.getContext().system()).mediator()
-                .tell(new DistributedPubSubMediator.Subscribe(topic, ActorNames.NSkyEye, getSelf()), getSelf());
+        String topic = model.getSiteId() + ActorNames.SLASH + ActorNames.COLLECTOR_Handler + ActorNames.SLASH + getSelf().path().name();
+        ActorRef mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+        mediator.tell(new DistributedPubSubMediator.Subscribe(topic, ActorNames.NSkyEye, getSelf()), getSelf());
 
-        log.info("CollectorHandler init success! topic:" + topic);
+        log.info("CollectorHandler init success! topic = " + topic);
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(CollectorProtocal.Report.class, this::report)
-                .match(DistributedPubSubMediator.SubscribeAck.class, msg -> log.info("Subscribe Success"))
+                .match(DistributedPubSubMediator.SubscribeAck.class, msg -> log.info("Subscribe Success" + msg))
                 .matchAny(msg -> onReceive(msg))
                 .build();
     }

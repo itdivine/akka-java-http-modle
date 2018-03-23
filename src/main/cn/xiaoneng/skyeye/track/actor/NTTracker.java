@@ -4,6 +4,7 @@ import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.routing.FromConfig;
+import akka.routing.SmallestMailboxPool;
 import cn.xiaoneng.skyeye.App;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsgMap;
 import cn.xiaoneng.skyeye.collector.config.ItemConfigKeyAction;
@@ -61,7 +62,7 @@ public class NTTracker extends AbstractActor {
     public NTTracker(NTTrackInfo trackInfo) {
 
         this.trackInfo = trackInfo;
-        this.httpHandler = getContext().actorOf(FromConfig.getInstance().props(Props.create(HttpHandler.class)), "httpHandler");
+        this.httpHandler = getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(HttpHandler.class)), "httpHandler");
     }
 
     @Override

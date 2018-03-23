@@ -14,6 +14,7 @@ import cn.xiaoneng.skyeye.bodyspace.actor.BodySpaceManager;
 import cn.xiaoneng.skyeye.collector.actor.Collector;
 import cn.xiaoneng.skyeye.collector.util.CollectorStatus;
 import cn.xiaoneng.skyeye.enterprise.bean.EVSInfo;
+import cn.xiaoneng.skyeye.track.actor.TrackerManager;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +99,11 @@ public class EVS extends AbstractPersistentActor {
 //            long keyWordQuota = info.getQuota().getBaidu_keyword_count();
         getContext().actorOf(Props.create(Collector.class, new Object[]{evsInfo.getSiteId(), CollectorStatus.ON}), ActorNames.COLLECTOR);
         getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
+        getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
 
 //            getContext().actorOf(Props.create(NavigationSpaceManager.class), ActorNames.NavigationManager);
 //            getContext().actorOf(Props.create(BodySpaceManager.class), ActorNames.BODYSPACEMANAGER);
-//            getContext().actorOf(Props.create(TrackerManager.class), ActorNames.TrackerManager);
+
 //            getContext().actorOf(Props.create(FunActor.class), ActorNames.AUTH);
 //            getContext().actorOf(Props.create(KafkaManager.class), ActorNames.KafkaManager);
     }

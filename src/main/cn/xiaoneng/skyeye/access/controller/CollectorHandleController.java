@@ -26,7 +26,8 @@ public class CollectorHandleController extends BaseController {
                                 route(
                                         post(() -> entity(Unmarshaller.entityToString(), data -> {
                                             String ip = remoteAddr.getAddress().map(InetAddress::getHostAddress).orElseGet(() -> "unknow");
-                                            String topic = siteId + ActorNames.SLASH + ActorNames.COLLECTOR_Handler;
+//                                            String topic = siteId + ActorNames.SLASH + ActorNames.COLLECTOR_Handler;
+                                            String topic = siteId + ActorNames.SLASH + ActorNames.COLLECTOR;
                                             String userAgent = request.getHeader("User-Agent").get().toString();
                                             log.debug("topic = " + topic + " ip = " + ip + "data = " + data);
                                             return complete(post(topic, new CollectorProtocal.Report(data, ip, userAgent)));
