@@ -13,21 +13,24 @@ import java.util.Map;
  */
 public class GetUserTrackMessage extends BaseMessage implements Serializable {
 
-    private Map<String, String> bodyMap;
+    //主体节点id
+    private String id;
     private ActorRef callback;
 
     private int page;
     private int per_page;
     private String navSpaceName;
     private boolean showPrice;
+    private String startpage;
 
 
-    public GetUserTrackMessage(Map<String, String> bodyMap, String nav, int page, int per_page, boolean showPrice, ActorRef callback) {
+    public GetUserTrackMessage(String id, String nav, String startpage, int page, int per_page, boolean showPrice, ActorRef callback) {
         super(null, null, 10);
         this.page = page;
         this.per_page = per_page;
         this.navSpaceName = nav;
-        this.bodyMap = bodyMap;
+        this.startpage = startpage;
+        this.id = id;
         this.showPrice = showPrice;
         this.callback = callback;
     }
@@ -40,12 +43,12 @@ public class GetUserTrackMessage extends BaseMessage implements Serializable {
         this.showPrice = showPrice;
     }
 
-    public void setBodyMap(Map<String, String> bodyMap) {
-        this.bodyMap = bodyMap;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public Map<String, String> getBodyMap() {
-        return bodyMap;
+    public String getId() {
+        return id;
     }
 
     public void setCallback(ActorRef callback) {
@@ -68,11 +71,24 @@ public class GetUserTrackMessage extends BaseMessage implements Serializable {
         return navSpaceName;
     }
 
+    public String getStartpage() {
+        return startpage;
+    }
+
+    public void setStartpage(String startpage) {
+        this.startpage = startpage;
+    }
+
     @Override
     public String toString() {
         return "GetUserTrackMessage{" +
-                "bodyMap=" + bodyMap +
-                ", callback=" + callback + super.toString() +
+                "id='" + id + '\'' +
+                ", callback=" + callback +
+                ", page=" + page +
+                ", per_page=" + per_page +
+                ", navSpaceName='" + navSpaceName + '\'' +
+                ", showPrice=" + showPrice +
+                ", start_page='" + startpage + '\'' +
                 '}';
     }
 }

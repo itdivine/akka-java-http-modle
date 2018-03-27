@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
+import akka.cluster.sharding.ClusterSharding;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
@@ -29,10 +30,11 @@ public class NavigationSpace extends AbstractActor {
     protected final Logger log = LoggerFactory.getLogger(getSelf().path().toStringWithoutAddress());
     private static Monitor monitor = MonitorCenter.getMonitor(Node.NavigationSpace);
 
-    private ActorRef navSpaceList = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.NavNodes);
+//    private ActorRef navSpaceList = getContext().actorOf(Props.create(ListProcessor.class), ActorNames.NavNodes);
 
     private ActorRef mediator;
     private NavigationSpaceInfo navInfo;
+    private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.NavigationNode);
 
     public NavigationSpace(NavigationSpaceInfo navInfo) {
         this.navInfo = navInfo;
@@ -222,21 +224,18 @@ public class NavigationSpace extends AbstractActor {
             }
 
             NavNodeInfo navNodeInfo = JSON.parseObject(bodyJson.toString(), NavNodeInfo.class);
+            shardRegion.tell(navNodeInfo, getSender());
+            getSender().tell("{\"status\":200,\"body\":\"\"}", getSelf());
 
-            // 导航节点是否已经创建
+            /*// 导航节点是否已经创建
             Option<ActorRef> navOption = getContext().child(navNodeInfo.getId());
-
             if(navOption.isEmpty()) {
-
                 ActorRef actorRef = getContext().actorOf(Props.create(NavigationNode.class, navNodeInfo),navNodeInfo.getId());
-
                 // 确认
                 actorRef.tell(new CommandMessage(Operation.CREATE, 10, null, getSender()), getSelf());
-
             } else {
-//                navOption.get().tell("@test Option<ActorRef> success ", getSelf());
                 getSender().tell("{\"status\":201,\"body\":\"\"}", getSelf());
-            }
+            }*/
 
 
         } catch (Exception e) {
@@ -254,14 +253,15 @@ public class NavigationSpace extends AbstractActor {
         ActorRef actorRef = null;
 
         try {
+            shardRegion.tell(message, getSender());
 
-            NavNodeInfo navNodeInfo = message.getNavNodeInfo();
+//            NavNodeInfo navNodeInfo = message.getNavNodeInfo();
 
-            // 内存中查找导航节点
+            /*// 内存中查找导航节点
             Option<ActorRef> navOption = getContext().child(navNodeInfo.getId());
 
             if(navOption.isEmpty()) {
-                actorRef = getContext().actorOf(Props.create(NavigationNode.class, navInfo.getName()), navNodeInfo.getId());
+                actorRef = getContext().actorOf(Props.create(NavigationNode.class, navNodeInfo.getName()), navNodeInfo.getId());
 
                 // 当需要获取导航空间下所有节点列表时，需要上报
                 navSpaceList.tell(new IsRegistMessage(true, actorRef.path().toString(), actorRef, 10), getSender());
@@ -269,7 +269,7 @@ public class NavigationSpace extends AbstractActor {
                 actorRef = navOption.get();
             }
 
-            actorRef.tell(message, getSender());
+            actorRef.tell(message, getSender());*/
 
 
         } catch (Exception e) {

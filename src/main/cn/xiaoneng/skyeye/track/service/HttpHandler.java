@@ -50,7 +50,7 @@ public class HttpHandler extends AbstractActor {
 
     private void handle(GetUserTrackMessage message) {
 
-        String nt_id = message.getBodyMap().get(BodyNodeModel.NT_ID);
+        String nt_id = message.getId();
         String url = getUrl(nt_id);
         if(url == null)
             getSender().tell(new KPIMessage(message.getMsgId()), getSelf());

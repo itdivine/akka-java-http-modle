@@ -3,9 +3,10 @@ package cn.xiaoneng.skyeye.track.actor;
 import akka.actor.*;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
-import akka.routing.FromConfig;
+import akka.http.javadsl.model.StatusCodes;
 import akka.routing.SmallestMailboxPool;
 import cn.xiaoneng.skyeye.App;
+import cn.xiaoneng.skyeye.access.Message.TrackProtocal;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsgMap;
 import cn.xiaoneng.skyeye.collector.config.ItemConfigKeyAction;
 import cn.xiaoneng.skyeye.collector.service.CollectorCopy;
@@ -71,11 +72,18 @@ public class NTTracker extends AbstractActor {
         try {
             super.preStart();
 //            this.getContext().system().eventStream().subscribe(getSelf(), EvsInfoChangedEvent.class);
-            this.siteId = Statics.getSiteId(getSelf().path().elements().iterator());
-            mediator = DistributedPubSub.get(this.getContext().system()).mediator();
-            mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
 
-            log.debug("NTTracker init success, path = " + getSelf().path().toStringWithoutAddress());
+            //Logger[/system/sharding/EVS/18/kf_1003/tracks/nt]
+            scala.collection.Iterator<String> it = getSelf().path().elements().iterator();
+            it.next();  it.next();  it.next();  it.next();
+            siteId = it.next();
+
+            // 不再用路径  kf_1003/handler
+            String topic = siteId + ActorNames.SLASH + ActorNames.TrackerManager + ActorNames.SLASH + getSelf().path().name();
+            mediator = DistributedPubSub.get(this.getContext().system()).mediator();
+            mediator.tell(new DistributedPubSubMediator.Subscribe(topic, ActorNames.NSkyEye, getSelf()), getSelf());
+
+            log.info("NTTracker init success, topic = " + topic);
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
@@ -112,13 +120,13 @@ public class NTTracker extends AbstractActor {
                 processCommand((CommandMessage) message);
                 monitor.newWriteTime("GET", System.currentTimeMillis() - start, true);
 
-            } else if (message instanceof String) {
+            } else if (message instanceof TrackProtocal.Get) {
 
                 // 3、查询用户轨迹 by nt_id
                 // 3-1、查询账号关联列表
-                log.debug("Receive: http.get " + message);
-                processHTTPRequest((String) message);
-                monitor.newWriteTime("THHP.GET", System.currentTimeMillis() - start, true);
+                log.debug("Receive: TrackProtocal.Get " + message);
+                processHTTPRequest((TrackProtocal.Get) message);
+                monitor.newWriteTime("TrackProtocal.Get", System.currentTimeMillis() - start, true);
 
             } else if (message instanceof BodyNodeMsgMap) {
 
@@ -175,45 +183,14 @@ public class NTTracker extends AbstractActor {
         }
     }
 
-    private void processHTTPRequest(String message) {
+    private void processHTTPRequest(TrackProtocal.Get message) {
 
         try {
-            JSONObject messageJson = JSON.parseObject(message);
-            String method = messageJson.getString("method");
-//            String token = messageJson.getString("token");
+            boolean showPrice = true;
+            log.debug("showPrice=" + showPrice);
 
-            if (Statics.isNullOrEmpty(method)) {
-                log.info("method is null, getUserTrackMessage= " + message);
-                getSender().tell("{\"status\":415,\"body\":\"\"}", getSelf());
-                return;
-            }
-
-            switch (method) {
-
-                case Operation.GET:
-
-                    boolean showPrice = true;
-                    log.debug("showPrice=" + showPrice);
-
-                    Map<String, String> bodyMap = new HashMap<>();
-                    JSONObject bodyJson = messageJson.getJSONObject("body");
-                    int page = Integer.parseInt(bodyJson.remove("page")+"");
-                    int per_page = Integer.parseInt(bodyJson.remove("per_page")+"");
-                    String nav = (String)bodyJson.remove("nav");
-
-                    for (Map.Entry<String, Object> entry : bodyJson.entrySet()) {
-                        String key = entry.getKey();
-                        String value = (String) entry.getValue();
-                        bodyMap.put(key, value);
-                    }
-
-                    getUserTrack(new GetUserTrackMessage(bodyMap, nav, page, per_page, showPrice, getSender()));
-                    break;
-
-                default:
-                    log.info("Invalid Message Operation: " + method);
-                    getSender().tell("{\"status\":415}", getSelf());
-            }
+            getUserTrack(new GetUserTrackMessage(message.nt_id, message.nav, message.start_page,
+                    message.page, message.per_page, showPrice, getSender()));
 
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
@@ -393,19 +370,17 @@ public class NTTracker extends AbstractActor {
 
             //解析咨询发起页
             ActorRef callback = recordFullFillment.getUserTrackMessage.getCallback();
-            String startPage =  recordFullFillment.getUserTrackMessage.getBodyMap().get("startpage");
+            String startPage =  recordFullFillment.getUserTrackMessage.getStartpage();
             String data = recordFullFillment.getInfos(startPage);
-            String nt = recordFullFillment.getGetUserTrackMessage().getBodyMap().get("nt_id");
+            String nt = recordFullFillment.getGetUserTrackMessage().getId();
             if(Statics.isNullOrEmpty(data) || data.equals("{}") || !data.contains("sessions")) {
                 //查找副本数据
                 ActorSelection copy = getContext().actorSelection("../../" + ActorNames.COLLECTOR + "/copy");
                 copy.tell(new CollectorCopy.Get(nt, callback), getSelf());
 
             } else {
-                JSONObject object = new JSONObject();
-                object.put("status", 200);
-                object.put("body", data);
-                callback.tell(object.toString(), getSelf());
+                TrackProtocal.Result result = new TrackProtocal.Result(StatusCodes.OK, data);
+                callback.tell(result, getSelf());
             }
 
             recordFullFillmentMap.remove(msgId);
@@ -912,7 +887,7 @@ public class NTTracker extends AbstractActor {
                         userJson.put(entry.getKey(), entry.getValue());
                     }
                 }
-                return JSON.toJSONString(userJson,true);
+                return userJson.toJSONString();
             }
 
 

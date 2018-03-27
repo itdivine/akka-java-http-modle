@@ -22,6 +22,8 @@ import cn.xiaoneng.skyeye.bodyspace.actor.BodyNode;
 import cn.xiaoneng.skyeye.bodyspace.actor.BodyNodeShard;
 import cn.xiaoneng.skyeye.enterprise.actor.EVS;
 import cn.xiaoneng.skyeye.enterprise.actor.EVSShard;
+import cn.xiaoneng.skyeye.navigation.actor.NavigationNode;
+import cn.xiaoneng.skyeye.navigation.actor.NavigationNodeShard;
 import cn.xiaoneng.skyeye.util.ActorNames;
 import cn.xiaoneng.skyeye.util.COMMON;
 import cn.xiaoneng.skyeye.access.code.HttpCodeRegister;
@@ -116,5 +118,19 @@ public class App {
                         Props.create(BodyNode.class),
                         settings,
                         new BodyNodeShard());
+
+        ClusterSharding.get(system)
+                .start(
+                        ActorNames.NavigationNode,
+                        Props.create(NavigationNode.class),
+                        settings,
+                        new NavigationNodeShard());
+
+        /*ClusterSharding.get(system)
+                .start(
+                        ActorNames.RECORD,
+                        Props.create(Record.class),
+                        settings,
+                        new RecordShard());*/
     }
 }

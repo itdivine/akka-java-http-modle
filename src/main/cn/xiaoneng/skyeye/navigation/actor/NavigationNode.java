@@ -35,18 +35,6 @@ public class NavigationNode extends AbstractActor {
     private NavNodeInfo _navNodeInfo;
     private String _navSpaceName;
 
-    public NavigationNode(String navSpaceName) {
-        _navSpaceName = navSpaceName;
-    }
-
-    public void set_navNodeInfo(NavNodeInfo _navNodeInfo) {
-        this._navNodeInfo = _navNodeInfo;
-    }
-
-    public NavNodeInfo get_navNodeInfo() {
-        return _navNodeInfo;
-    }
-
     @Override
     public void preStart() throws Exception {
         log.info("NavigationNode init " + getSelf().path().toStringWithoutAddress());
@@ -56,10 +44,6 @@ public class NavigationNode extends AbstractActor {
 
         log.info("NavigationNode init success, path = " + getSelf().path());
         super.preStart();
-
-        ActorRef ref = getContext().parent();
-        log.debug(ref.toString());
-        log.debug(ref.path()+"");
     }
 
     @Override
@@ -75,6 +59,11 @@ public class NavigationNode extends AbstractActor {
         try {
             log.debug("Receive message: " + message);
 
+            /*if(message instanceof NavNodeInfo) {
+                _navSpaceName = ((NavNodeInfo)message).getSpaceName();
+                _navNodeInfo = (NavNodeInfo)message;
+            }
+            else */
             if(message instanceof String) {
 
                 processHTTPCommand((String)message);
@@ -109,6 +98,7 @@ public class NavigationNode extends AbstractActor {
         try {
 
             NavNodeInfo httpNodeInfo = message.getNavNodeInfo();
+            _navSpaceName = httpNodeInfo.getSpaceName();
 
             if(_navNodeInfo == null) {
 

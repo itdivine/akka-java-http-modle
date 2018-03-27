@@ -129,13 +129,13 @@ public class NavigationPVRouter extends AbstractActor {
             // 2.分发消息
             JSONArray array = null;
             JSONObject obj = null;
-            for(String navName : navNameSet) {
+            for(String navSpaceName : navNameSet) {
 
-                if (!reportNavNameSet.contains(navName))
+                if (!reportNavNameSet.contains(navSpaceName))
                     continue;
 
 //                array = (JSONArray)map.get(navName);
-                String json = map.get(navName).toString();
+                String json = map.get(navSpaceName).toString();
                 if(json.startsWith("[")) {
                     array = JSON.parseArray(json);
                 } else {
@@ -145,15 +145,15 @@ public class NavigationPVRouter extends AbstractActor {
                 }
 
                 for(int i=0;i<array.size();i++) {
-                    String indexParam = NavigationSpaceConfig.getInstance().getNavigationSpaceInfo(navName).getIndexParam();
+                    String indexParam = NavigationSpaceConfig.getInstance().getNavigationSpaceInfo(navSpaceName).getIndexParam();
                     JSONObject params = array.getJSONObject(i);
                     String id = params.getString(indexParam);
 
                     NavNodeInfo navNodeInfo = new NavNodeInfo(siteId, id, JSON.parseObject(params.toJSONString(), Map.class), message.getCreateTime());
-                    navNodeInfo.setSpaceName(navName);
+                    navNodeInfo.setSpaceName(navSpaceName);
                     CreateNavNodeMsg msg = new CreateNavNodeMsg(navNodeInfo, 10, message.getMsgId());
 
-                    ActorSelection selection = getContext().actorSelection("../../" + navName);
+                    ActorSelection selection = getContext().actorSelection("../../" + navSpaceName);
                     selection.tell(msg, getSelf());
                 }
             }

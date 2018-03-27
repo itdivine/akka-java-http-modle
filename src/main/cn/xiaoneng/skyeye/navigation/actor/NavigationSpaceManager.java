@@ -6,6 +6,7 @@ import akka.actor.Props;
 import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.pubsub.DistributedPubSubMediator;
 import akka.routing.FromConfig;
+import akka.routing.SmallestMailboxPool;
 import cn.xiaoneng.skyeye.enterprise.message.IsRegistMessage;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
@@ -56,7 +57,8 @@ public class NavigationSpaceManager extends AbstractActor {
         mediator = DistributedPubSub.get(this.getContext().system()).mediator();
         mediator.tell(new DistributedPubSubMediator.Subscribe(getSelf().path().toStringWithoutAddress(), ActorNames.NSkyEye, getSelf()), getSelf());
 
-        reportPVProsessor = getContext().actorOf(FromConfig.getInstance().props(Props.create(NavigationPVRouter.class)), ActorNames.NavReportPVProsessor);
+//        reportPVProsessor = getContext().actorOf(FromConfig.getInstance().props(Props.create(NavigationPVRouter.class)), ActorNames.NavReportPVProsessor);
+        reportPVProsessor = getContext().actorOf(new SmallestMailboxPool(3).props(Props.create(NavigationPVRouter.class)), ActorNames.NavReportPVProsessor);
 
         Map<String, NavigationSpaceInfo> item = NavigationSpaceConfig.getInstance().getItem();
 
@@ -75,7 +77,6 @@ public class NavigationSpaceManager extends AbstractActor {
             // 注册导航空间
             listProcessor.tell(new IsRegistMessage(true, ref.path().toString(), ref, 10), getSelf());
         }
-
 
         log.debug("NavigationSpaceManager init success, path = " + getSelf().path());
     }

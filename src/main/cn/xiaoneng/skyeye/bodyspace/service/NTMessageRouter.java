@@ -3,6 +3,7 @@ package cn.xiaoneng.skyeye.bodyspace.service;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ReceiveTimeout;
+import akka.cluster.sharding.ClusterSharding;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsg;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeMsgMap;
 import cn.xiaoneng.skyeye.bodyspace.message.CreateNodeFromDB;
@@ -59,42 +60,15 @@ public class NTMessageRouter extends AbstractActor {
 
             log.debug("receive GetUserTrackMessage " + (GetUserTrackMessage)message);
 
-            Map<String, String> idMap = ((GetUserTrackMessage) message).getBodyMap();
-//
-//            sender = getSender();
-//            msgId = ((GetUserTrackMessage) message).getMsgId();
-//
-//            String key = null;
-//            String value = null;
-//            for (Map.Entry<String, String> entry : idMap.entrySet()) {
-//
-//                key = entry.getKey();
-//                value = entry.getValue();
-//            }
-//            if (key.equals("nt")) {
-//
-//                String path = "../*/" + value;
-//                NTCommand command = new NTCommand(value, false);
-//
-//                getContext().actorSelection(path).tell(command, getSelf());
-//
-////                Patterns.ask()
-//            } else {
-//                String path = "../" + key + "*";
-//
-//                IdCommand command = new IdCommand(value,false);
-//
-//                getContext().actorSelection(path).tell(command,getSelf());
-//
-//            }
-            String nt_id = idMap.get(BodyNodeModel.NT_ID);
+            String nt_id = ((GetUserTrackMessage) message).getId();
 
             // TODO: 2016/10/27 根据nt查询数据库，获取账号信息
 
-            String path = "../" + ActorNames.NT_BODYSPACE + "/" + nt_id;
-
+            ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.BodyNode);
+            shardRegion.tell(message, getSender());
 
             // 内存中查找导航节点
+            /*String path = "../" + ActorNames.NT_BODYSPACE + "/" + nt_id;
             Option<ActorRef> navOption = getContext().child(path);
             if(navOption.isEmpty()) {
                 getContext().actorSelection("../nt").tell(new CreateNodeFromDB(nt_id, (GetUserTrackMessage) message), getSender());
@@ -102,7 +76,7 @@ public class NTMessageRouter extends AbstractActor {
             } else {
                 navOption.get().tell(message, getSender());
                 log.debug("tell GetUserTrackMessage " + message);
-            }
+            }*/
 
 
 

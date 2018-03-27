@@ -2,6 +2,7 @@ package cn.xiaoneng.skyeye.track.actor;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.cluster.sharding.ClusterSharding;
 import cn.xiaoneng.skyeye.db.Neo4jDataAccess;
 import cn.xiaoneng.skyeye.monitor.Monitor;
 import cn.xiaoneng.skyeye.monitor.MonitorCenter;
@@ -108,7 +109,7 @@ public class Record extends AbstractActor {
 
     }
 
-    public void getInfos(GetRecordInfosMessage message) {
+    private void getInfos(GetRecordInfosMessage message) {
 
         try {
             String msgId = message.getMsgId();
@@ -120,7 +121,7 @@ public class Record extends AbstractActor {
             NavInfoFulfillment navInfoFulfillment = new NavInfoFulfillment(msgId, getSender());
             navInfoFulfillmentMap.put(msgId, navInfoFulfillment);
 
-            GetNavNodeInfo getMessage = new GetNavNodeInfo(msgId);
+            GetNavNodeInfo getMessage = new GetNavNodeInfo(msgId, recordInfo.getNavId(), recordInfo.getNavSpaceName());
             dispatchTo(getMessage);
 
         } catch (Exception e) {
@@ -128,12 +129,15 @@ public class Record extends AbstractActor {
         }
     }
 
+    private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.NavigationNode);
+
     private void dispatchTo(GetNavNodeInfo getMessage) {
 
         try {
-            String path = "../../../" + ActorNames.NavigationManager + "/" + recordInfo.getNavSpaceName() + "/" + recordInfo.getNavId();
-            getContext().actorSelection(path).tell(getMessage, getSelf());
+//            String path = "../../../" + ActorNames.NavigationManager + "/" + recordInfo.getNavSpaceName() + "/" + recordInfo.getNavId();
+//            getContext().actorSelection(path).tell(getMessage, getSelf());
 
+            shardRegion.tell(getMessage, getSelf());
         } catch (Exception e) {
             log.error("Exception " + e.getMessage());
         }

@@ -14,9 +14,9 @@ public class Routers extends AllDirectives {
         EvsController evsController = new EvsController();
         CollectorController collectorController = new CollectorController();
         CollectorHandleController collectorHandleController = new CollectorHandleController();
-
+        TrackController trackController = new TrackController();
         return route(RootController.route(), evsManagerController.route(), evsController.route(),
-                collectorController.route(),
-                collectorHandleController.route());
+                collectorController.route(), collectorHandleController.route(),
+                trackController.route());
     }
 }

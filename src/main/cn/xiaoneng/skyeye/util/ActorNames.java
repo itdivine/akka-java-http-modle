@@ -33,6 +33,7 @@ public class ActorNames {
      * 跟踪管理器
      */
     public static final String TRACKS = "tracks";
+    public static final String RECORD = "record";
 
     /**
      * kafka [计算引擎]
@@ -52,9 +53,14 @@ public class ActorNames {
     public static final String BODY = "Body";
 
     /**
-     * 主体空间
+     * 主体节点
      */
     public static final String BodyNode = "body_node";
+
+    /**
+     * 导航节点
+     */
+    public static final String NavigationNode = "nav_node";
 
 
     /**

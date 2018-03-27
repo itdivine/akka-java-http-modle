@@ -75,7 +75,7 @@ public class BodyNode extends AbstractActor {
 
             if (msg instanceof BodyNodeModel) {
                 model = (BodyNodeModel) msg;
-
+                model.setBodySpace(((BodyNodeModel) msg).getBodySpace());
             } else if (msg instanceof BodyNodeMsg) {
 
                 BodyNodeMsg message = (BodyNodeMsg) msg;
@@ -102,12 +102,7 @@ public class BodyNode extends AbstractActor {
                 String method = json.getString("method");
 
                 if (HTTPCommand.GET.equals(method)) {
-
-//                    String rtnStr = "{\"body\" : {\"id\" : \"" + this.model.getId() + "\",\"nt\" : \"" + this.model.getNt_id() + "\"," +
-//                            "\"createtime\" : \"" + this.model.getCreateTime() + "\", \"lastvisittime\" : \"" + this.model.getLastVisitTime() + "\"}," +
-//                            "\"status\" : 200}";
                     String rtnStr = "{\"body\" : " + JSON.toJSONString(model) + ", \"status\" : 200}";
-
                     getSender().tell(rtnStr, getSelf());
                 }
 
@@ -322,6 +317,7 @@ public class BodyNode extends AbstractActor {
                 model.setCreateTime(msg.getMsgtime());
                 model.setId(msg.getId());
                 model.setNt_id(nt_id);
+                model.setBodySpace(ActorNames.NT_BODYSPACE);
                 ((NTBodyNodeModel) model).setLoginId(msg_loginId);
                 ((NTBodyNodeModel) model).setAccountNumMap(accountNumMap);
                 model.setSiteId(Statics.getSiteId(getSelf().path().elements().iterator()));
@@ -365,8 +361,11 @@ public class BodyNode extends AbstractActor {
             map.put("id", nt_id);
 
             model = Neo4jDataAccess.getNTBodyNodeModel(labs, map);
-            if (model != null)
+            if (model != null) {
+                model.setBodySpace(ActorNames.NT_BODYSPACE);
                 log.debug(model.toString());
+            }
+
 
         } catch (Exception e) {
             log.error(e.getMessage());

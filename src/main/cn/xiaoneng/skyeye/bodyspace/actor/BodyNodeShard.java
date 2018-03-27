@@ -2,6 +2,7 @@ package cn.xiaoneng.skyeye.bodyspace.actor;
 
 import akka.cluster.sharding.ShardRegion;
 import cn.xiaoneng.skyeye.bodyspace.message.BodyNodeCreateMsg;
+import cn.xiaoneng.skyeye.track.message.GetUserTrackMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,18 +20,15 @@ public class BodyNodeShard implements ShardRegion.MessageExtractor {
         if (message instanceof BodyNodeCreateMsg) {
             return String.valueOf(((BodyNodeCreateMsg) message).getId());
         }
-//        else if (message instanceof Get) {
-//            return ((Get) message).siteId;
-//        }
+        else if (message instanceof GetUserTrackMessage) {
+            return ((GetUserTrackMessage) message).getId();
+        }
         return null;
     }
 
     @Override
     public Object entityMessage(Object message) {
-        if (message instanceof BodyNodeCreateMsg)
-            return message;
-        else
-            return message;
+        return message;
     }
 
     @Override
@@ -39,10 +37,10 @@ public class BodyNodeShard implements ShardRegion.MessageExtractor {
             String id = ((BodyNodeCreateMsg) message).getId();
             return getShardId(id);
         }
-//        else if (message instanceof Get) {
-//            String siteId = ((Get) message).siteId;
-//            return getShardId(siteId);
-//        }
+        else if (message instanceof GetUserTrackMessage) {
+            String id = ((GetUserTrackMessage) message).getId();
+            return getShardId(id);
+        }
         else if(message instanceof ShardRegion.StartEntity) {
             String id = ((ShardRegion.StartEntity) message).entityId();
             return getShardId(id);

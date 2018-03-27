@@ -12,8 +12,28 @@ import java.io.Serializable;
  */
 public class GetNavNodeInfo extends BaseMessage implements Serializable {
 
-    public GetNavNodeInfo(String msgId) {
+    private String navId;
+    private String navSpaceName;
+
+    public GetNavNodeInfo(String msgId, String navId, String navSpaceName) {
         super(msgId, 10);
+        this.navId = navId;
+        this.navSpaceName = navSpaceName;
     }
 
+    public String getNavId() {
+        return navId;
+    }
+
+    public void setNavId(String navId) {
+        this.navId = navId;
+    }
+
+    public String getNavSpaceName() {
+        return navSpaceName;
+    }
+
+    public void setNavSpaceName(String navSpaceName) {
+        this.navSpaceName = navSpaceName;
+    }
 }
