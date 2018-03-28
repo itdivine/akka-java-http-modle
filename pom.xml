@@ -26,13 +26,7 @@
             <groupId>com.sclasen</groupId>
             <artifactId>akka-zk-cluster-seed_2.12</artifactId>
             <version>0.1.10</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.xiaoneng.nt</groupId>
-                    <artifactId>log-sdk</artifactId>
-                </exclusion>
-            </exclusions>
-    </dependency>
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -121,6 +115,12 @@
             <groupId>cn.xiaoneng</groupId>
             <artifactId>nt-kafka-sdk</artifactId>
             <version>1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -136,6 +136,12 @@
             <groupId>cn.xiaoneng</groupId>
             <artifactId>nt-useragent</artifactId>
             <version>1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>cn.xiaoneng.storage</groupId>
@@ -150,13 +156,72 @@
                     <groupId>org.jboss.netty</groupId>
                     <artifactId>netty</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>orientdb-client</artifactId>
+                    <groupId>com.orientechnologies</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>cn.xiaoneng.nt</groupId>
             <artifactId>log-sdk</artifactId>
             <version>1.1.4</version>
-        </dependency>
+        </dependency>-->
+
+        <!-- LOGGING begin -->
+        <!-- slf4j -->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>slf4j-api</artifactId>-->
+            <!--<version>${slf4j.version}</version>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; logback &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>ch.qos.logback</groupId>-->
+            <!--<artifactId>logback-classic</artifactId>-->
+            <!--<version>${logback.version}</version>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; 代码直接调用log4j会被桥接到slf4j &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>log4j-over-slf4j</artifactId>-->
+            <!--<version>${slf4j.version}</version>-->
+            <!--<scope>runtime</scope>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; 代码直接调用common-logging会被桥接到slf4j &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>jcl-over-slf4j</artifactId>-->
+            <!--<version>${slf4j.version}</version>-->
+            <!--<scope>runtime</scope>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; 代码直接调用java.util.logging会被桥接到slf4j &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>jul-to-slf4j</artifactId>-->
+            <!--<version>${slf4j.version}</version>-->
+            <!--<scope>runtime</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>log4j</groupId>-->
+            <!--<artifactId>log4j</artifactId>-->
+            <!--<version>1.2.16</version>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; log4jdbc &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.bgee.log4jdbc-log4j2</groupId>-->
+            <!--<artifactId>log4jdbc-log4j2-jdbc4</artifactId>-->
+            <!--<version>1.15</version>-->
+            <!--<scope>runtime</scope>-->
+        <!--</dependency>-->
+        <!--&lt;!&ndash; LOGGING end &ndash;&gt;-->
+
     </dependencies>
 
 </project>

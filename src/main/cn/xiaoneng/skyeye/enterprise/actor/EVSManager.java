@@ -25,6 +25,7 @@ public class EVSManager extends AbstractPersistentActor {
 
     private ActorRef shardRegion = ClusterSharding.get(getContext().getSystem()).shardRegion(ActorNames.EVS);
 
+
     /**
      * 开启的企业集合
      */
